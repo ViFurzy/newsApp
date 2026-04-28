@@ -1,0 +1,52 @@
+services:
+
+  ai-news-app:
+    build: .
+    image: ai-news-app:latest
+    container_name: ai_news_app
+    restart: unless-stopped
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./data:/app/data
+    env_file:
+      - .env
+    networks:
+      - app-network
+    depends_on:
+      gotify:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 25s
+
+  gotify:
+    image: gotify/server:latest
+    container_name: gotify_server
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    env_file:
+      - .env
+    volumes:
+      - ./gotify_data:/app/data
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Nginx Proxy Manager users:
+#   Replace the `app-network` block above with:
+#
+#   app-network:
+#     external: true
+#     name: proxy-network
+#
+#   and make sure both services are attached to that network.
+# ─────────────────────────────────────────────────────────────────────────────

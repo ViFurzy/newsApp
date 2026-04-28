@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+.env
+.env.*
+!.env.example
+
+data/
+gotify_data/
+
+.git/
+.gitignore
+.gitattributes

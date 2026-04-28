@@ -1,0 +1,27 @@
+# ── Claude Code ──────────────────────────────────────────────────────────────
+.claude/
+
+# ── Secrets ──────────────────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ── Runtime data (generated, not source) ─────────────────────────────────────
+ai_news_app/data/
+ai_news_app/gotify_data/
+gotify_data/
+
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini

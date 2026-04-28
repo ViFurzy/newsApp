@@ -1,0 +1,19 @@
+# Default: normalise line endings in the index
+* text=auto
+
+# Shell scripts must always use LF (or they break on Linux)
+*.sh text eol=lf
+
+# Python source
+*.py text eol=lf
+
+# Docker files
+Dockerfile text eol=lf
+.dockerignore text eol=lf
+docker-compose.yml text eol=lf
+
+# Binary assets — never touch line endings
+*.ico binary
+*.db  binary
+*.png binary
+*.jpg binary

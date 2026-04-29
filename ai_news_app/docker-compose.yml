@@ -13,9 +13,6 @@ services:
       - .env
     networks:
       - app-network
-    depends_on:
-      gotify:
-        condition: service_started
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
       interval: 30s

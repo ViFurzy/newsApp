@@ -23,19 +23,6 @@ services:
       retries: 3
       start_period: 25s
 
-  gotify:
-    image: gotify/server:latest
-    container_name: gotify_server
-    restart: unless-stopped
-    ports:
-      - "8080:80"
-    env_file:
-      - .env
-    volumes:
-      - ./gotify_data:/app/data
-    networks:
-      - app-network
-
 networks:
   app-network:
     driver: bridge

@@ -7,9 +7,6 @@ import feedparser
 import requests
 from datetime import datetime
 
-GOTIFY_URL = os.environ.get("GOTIFY_URL", "http://gotify:80/message")
-GOTIFY_TOKEN = os.environ.get("GOTIFY_TOKEN", "")
-
 SCHEDULE_TIMES = ["08:00", "10:00", "12:00", "14:00", "16:00", "18:00"]
 
 DATA_DIR = "/app/data"
@@ -119,29 +116,6 @@ def fetch_all_data():
     free_games_count = fetch_free_games()
 
     print(f"[{datetime.now()}] Done. AI ({ai_count}), GamesNews ({games_count}), FreeGames ({free_games_count}).")
-    send_notification()
-
-
-def send_notification():
-    if not GOTIFY_TOKEN or GOTIFY_TOKEN == "podaj_swoj_token_gotify":
-        print(f"[{datetime.now()}] Notification skipped — no token configured.")
-        return
-
-    headers = {"X-Gotify-Key": GOTIFY_TOKEN}
-    payload = {
-        "message": "AI articles and free games fetched successfully!\n\n[Open Dashboard](http://news.local)",
-        "title": "Daily Aggregator Ready",
-        "priority": 5,
-        "extras": {
-            "client::display": {"contentType": "text/markdown"}
-        }
-    }
-
-    try:
-        requests.post(GOTIFY_URL, headers=headers, json=payload)
-        print(f"[{datetime.now()}] Gotify notification sent.")
-    except Exception as e:
-        print(f"[{datetime.now()}] Gotify error: {e}")
 
 
 if __name__ == "__main__":

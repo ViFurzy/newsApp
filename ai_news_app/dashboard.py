@@ -29,12 +29,12 @@ FREE_GAMES_FILE = os.path.join(DATA_DIR, "free_games.json")
 GAMES_PER_PAGE = 8
 
 RSS_ICON = '<svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;flex-shrink:0;opacity:.85;"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg>'
-CLOCK_ICON = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="min-width:12px;opacity:.7;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>'
+CLOCK_ICON = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="min-width:11px;opacity:.7;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>'
 CHECK_ICON = '<svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;flex-shrink:0;"><polyline points="20 6 9 17 4 12"></polyline></svg>'
 
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
     header[data-testid="stHeader"],
     div[data-testid="stToolbar"],
@@ -49,87 +49,108 @@ st.markdown("""
 
     /* ── Design tokens ──────────────────────────── */
     :root {
-        --bg:             #07111e;
-        --card-fade:      rgba(7, 17, 30, 0.75);
-        --card-fade-hover: rgba(7, 17, 30, 0.97);
-        --surface:        rgba(13, 25, 48, 0.70);
-        --surface-hover:  rgba(13, 25, 48, 0.96);
-        --border:         rgba(148, 163, 184, 0.09);
-        --border-accent:  rgba(124, 58, 237, 0.45);
-        --text-1:         #f1f5f9;
-        --text-2:         #64748b;
-        --text-3:         #94a3b8;
-        --accent:         #7c3aed;
-        --accent-2:       #2563eb;
-        --accent-glow:    rgba(124, 58, 237, 0.30);
-        --badge-bg:       rgba(124, 58, 237, 0.10);
-        --badge-text:     #a78bfa;
-        --badge-border:   rgba(124, 58, 237, 0.22);
-        --green:          #10b981;
-        --green-bg:       rgba(16, 185, 129, 0.10);
-        --green-border:   rgba(16, 185, 129, 0.22);
-        --r-card:         18px;
-        --r-sm:           10px;
+        --bg:              #04090f;
+        --card-fade:       rgba(4, 9, 15, 0.88);
+        --card-fade-hover: rgba(4, 9, 15, 0.98);
+        --surface:         rgba(0, 255, 247, 0.025);
+        --surface-hover:   rgba(0, 255, 247, 0.058);
+        --border:          rgba(0, 255, 247, 0.10);
+        --border-accent:   rgba(0, 255, 247, 0.45);
+        --text-1:          #cde8ed;
+        --text-2:          #2e6475;
+        --text-3:          #4d8fa3;
+        --accent:          #00fff7;
+        --accent-2:        #ff0080;
+        --accent-glow:     rgba(0, 255, 247, 0.22);
+        --badge-bg:        rgba(0, 255, 247, 0.07);
+        --badge-text:      #00fff7;
+        --badge-border:    rgba(0, 255, 247, 0.25);
+        --green:           #00ff88;
+        --green-bg:        rgba(0, 255, 136, 0.07);
+        --green-border:    rgba(0, 255, 136, 0.25);
+        --r-card:          5px;
+        --r-sm:            3px;
+        --font-display:    'Orbitron', sans-serif;
+        --font-body:       'Space Grotesk', sans-serif;
+        --font-mono:       'JetBrains Mono', monospace;
     }
     [data-theme="light"] {
-        --bg:             #eef2f9;
-        --card-fade:      rgba(238, 242, 249, 0.8);
-        --card-fade-hover: rgba(238, 242, 249, 1);
-        --surface:        rgba(255, 255, 255, 0.82);
-        --surface-hover:  rgba(255, 255, 255, 1);
-        --border:         rgba(15, 23, 42, 0.08);
-        --border-accent:  rgba(37, 99, 235, 0.42);
-        --text-1:         #0f172a;
-        --text-2:         #475569;
-        --text-3:         #334155;
-        --accent:         #2563eb;
-        --accent-2:       #7c3aed;
-        --accent-glow:    rgba(37, 99, 235, 0.22);
-        --badge-bg:       rgba(37, 99, 235, 0.08);
-        --badge-text:     #2563eb;
-        --badge-border:   rgba(37, 99, 235, 0.20);
+        --bg:              #eaf5f8;
+        --card-fade:       rgba(234, 245, 248, 0.88);
+        --card-fade-hover: rgba(234, 245, 248, 0.99);
+        --surface:         rgba(0, 102, 180, 0.04);
+        --surface-hover:   rgba(0, 102, 180, 0.09);
+        --border:          rgba(0, 102, 180, 0.13);
+        --border-accent:   rgba(0, 102, 180, 0.50);
+        --text-1:          #091826;
+        --text-2:          #1e5570;
+        --text-3:          #0f4060;
+        --accent:          #005fb5;
+        --accent-2:        #b5005f;
+        --accent-glow:     rgba(0, 95, 181, 0.18);
+        --badge-bg:        rgba(0, 95, 181, 0.08);
+        --badge-text:      #004fa0;
+        --badge-border:    rgba(0, 95, 181, 0.22);
+        --green:           #007a44;
+        --green-bg:        rgba(0, 122, 68, 0.08);
+        --green-border:    rgba(0, 122, 68, 0.22);
     }
 
     /* ── Base ───────────────────────────────────── */
     html, body, [class*="css"], .stApp {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+        font-family: var(--font-body), -apple-system, BlinkMacSystemFont, sans-serif !important;
     }
+
+    /* Background: subtle grid + dual-tone radial blooms */
     div[data-testid="stAppViewContainer"], .main {
         background:
-            radial-gradient(ellipse 75% 50% at 15% -5%,  rgba(124,58,237,.11) 0%, transparent 60%),
-            radial-gradient(ellipse 60% 45% at 88% 100%, rgba(37,99,235,.08)  0%, transparent 60%),
+            linear-gradient(rgba(0,255,247,0.026) 1px, transparent 1px) 0 0 / 55px 55px,
+            linear-gradient(90deg, rgba(0,255,247,0.026) 1px, transparent 1px) 0 0 / 55px 55px,
+            radial-gradient(ellipse 80% 55% at 10% 0%,  rgba(0,255,247,.07)  0%, transparent 55%),
+            radial-gradient(ellipse 60% 50% at 90% 100%, rgba(255,0,128,.05) 0%, transparent 55%),
             var(--bg) !important;
         background-attachment: fixed !important;
         transition: background 0.4s ease;
     }
+    [data-theme="light"] div[data-testid="stAppViewContainer"],
+    [data-theme="light"] .main {
+        background:
+            linear-gradient(rgba(0,95,181,0.04) 1px, transparent 1px) 0 0 / 48px 48px,
+            linear-gradient(90deg, rgba(0,95,181,0.04) 1px, transparent 1px) 0 0 / 48px 48px,
+            radial-gradient(ellipse 80% 55% at 10% 0%,  rgba(0,95,181,.07)  0%, transparent 55%),
+            radial-gradient(ellipse 60% 50% at 90% 100%, rgba(181,0,95,.04) 0%, transparent 55%),
+            var(--bg) !important;
+    }
 
     /* ── Scrollbar ──────────────────────────────── */
-    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(148,163,184,.18); border-radius: 99px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(148,163,184,.32); }
+    ::-webkit-scrollbar-thumb { background: rgba(0,255,247,.18); border-radius: 2px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(0,255,247,.35); }
 
-    /* ── Tabs — pill switcher ───────────────────── */
+    /* ── Tabs ──────────────────────────────────── */
     .stTabs [data-baseweb="tab-list"] {
-        background: var(--surface);
-        backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+        background: rgba(0,255,247,0.025);
         border: 1px solid var(--border);
-        border-radius: 14px; padding: 5px; gap: 4px;
+        border-radius: 3px; padding: 4px; gap: 3px;
         justify-content: center; width: fit-content; margin: 0 auto 2.5rem;
-        box-shadow: 0 4px 24px -4px rgba(0,0,0,.18);
+        box-shadow: 0 0 32px -8px rgba(0,255,247,.14), inset 0 0 24px rgba(0,255,247,.02);
     }
     .stTabs [data-baseweb="tab"] {
-        height: 42px; border-radius: var(--r-sm) !important;
-        padding: 0 1.7rem;
-        font-weight: 600; font-size: .92rem; letter-spacing: .01em;
+        height: 40px; border-radius: 2px !important;
+        padding: 0 1.9rem;
+        font-family: var(--font-display) !important;
+        font-weight: 600; font-size: .66rem; letter-spacing: .18em;
+        text-transform: uppercase;
         color: var(--text-2) !important;
         background: transparent !important; border: none !important;
         white-space: nowrap; transition: all .22s ease;
     }
     .stTabs [aria-selected="true"] {
-        background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%) !important;
-        color: #fff !important; border: none !important;
-        box-shadow: 0 4px 16px -3px var(--accent-glow) !important;
+        background: rgba(0,255,247,0.09) !important;
+        color: var(--accent) !important; border: none !important;
+        box-shadow: 0 0 22px -4px var(--accent-glow), inset 0 0 14px rgba(0,255,247,.05) !important;
+        text-shadow: 0 0 12px rgba(0,255,247,.55) !important;
     }
     .stTabs [data-baseweb="tab-highlight"],
     .stTabs [data-baseweb="tab-border"] { display: none !important; }
@@ -137,49 +158,84 @@ st.markdown("""
     /* ── Section header ─────────────────────────── */
     .section-hdr {
         display: flex; align-items: center; gap: 10px;
-        margin: 0 0 18px; padding-bottom: 14px;
+        margin: 0 0 20px; padding-bottom: 14px;
         border-bottom: 1px solid var(--border);
+        position: relative;
+    }
+    .section-hdr::after {
+        content: ''; position: absolute; bottom: -1px; left: 0;
+        width: 48px; height: 1px;
+        background: var(--accent);
+        box-shadow: 0 0 8px var(--accent);
+    }
+    .section-hdr-prefix {
+        font-family: var(--font-mono); font-size: .72rem;
+        color: var(--accent); opacity: 0.65;
+        flex-shrink: 0; user-select: none;
     }
     .section-hdr h2 {
-        font-size: 1.05rem; font-weight: 700; color: var(--text-1);
-        margin: 0; letter-spacing: -.02em;
+        font-family: var(--font-display) !important;
+        font-size: .72rem; font-weight: 700; color: var(--text-1);
+        margin: 0; letter-spacing: .14em; text-transform: uppercase;
     }
     .section-pill {
-        margin-left: auto; font-size: .68rem; font-weight: 700;
+        margin-left: auto; font-size: .58rem; font-weight: 600;
         color: var(--badge-text); background: var(--badge-bg);
-        border: 1px solid var(--badge-border); border-radius: 99px;
-        padding: 3px 10px; letter-spacing: .05em; text-transform: uppercase;
+        border: 1px solid var(--badge-border); border-radius: 2px;
+        padding: 2px 9px; letter-spacing: .1em; text-transform: uppercase;
+        font-family: var(--font-mono);
     }
 
     /* ── News card ──────────────────────────────── */
     .news-card {
         background: var(--surface);
-        backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
         border: 1px solid var(--border);
+        border-top: 2px solid rgba(0,255,247,0.32);
         border-radius: var(--r-card);
         margin-bottom: 18px; color: var(--text-1);
-        transition: transform .3s cubic-bezier(.34,1.56,.64,1),
+        transition: transform .3s cubic-bezier(.34,1.26,.64,1),
                     box-shadow .3s ease, border-color .3s ease;
         height: 420px;
         display: flex; flex-direction: column;
         position: relative; overflow: hidden;
-        box-shadow: 0 2px 14px rgba(0,0,0,.14);
+        box-shadow: 0 2px 22px rgba(0,0,0,.45), inset 0 0 40px rgba(0,255,247,.008);
+    }
+    /* top glimmer line */
+    .news-card::before {
+        content: '';
+        position: absolute; top: 0; left: 0; right: 0; height: 1px;
+        background: linear-gradient(90deg, transparent 0%, var(--accent) 50%, transparent 100%);
+        opacity: 0.45; z-index: 1; pointer-events: none;
+    }
+    /* corner cut */
+    .news-card::after {
+        content: '';
+        position: absolute; bottom: 0; right: 0;
+        width: 0; height: 0;
+        border-style: solid;
+        border-width: 0 0 20px 20px;
+        border-color: transparent transparent rgba(0,255,247,0.22) transparent;
+        pointer-events: none; z-index: 2;
     }
     .news-card:hover {
         transform: translateY(-7px);
-        box-shadow: 0 22px 50px -10px rgba(0,0,0,.28), 0 0 0 1px var(--border-accent);
+        box-shadow: 0 22px 55px -10px rgba(0,0,0,.55), 0 0 35px -6px var(--accent-glow);
         border-color: var(--border-accent);
+        border-top-color: var(--accent);
     }
     .card-link { position: absolute; inset: 0; z-index: 10; cursor: pointer; }
 
-    /* full-bleed flush image */
+    /* full-bleed image */
     .card-img {
         width: 100%; height: 178px; flex-shrink: 0;
         background-size: cover; background-position: center;
         position: relative;
+        filter: saturate(0.78) brightness(0.88);
+        transition: filter .3s ease;
     }
+    .news-card:hover .card-img { filter: saturate(1.0) brightness(0.95); }
     .card-img::after {
-        content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 36px;
+        content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 52px;
         background: linear-gradient(to bottom, transparent, var(--card-fade));
         transition: background .3s ease;
     }
@@ -188,44 +244,51 @@ st.markdown("""
     }
     .card-flag {
         position: absolute; top: 10px; right: 12px; z-index: 2;
-        filter: drop-shadow(0 2px 6px rgba(0,0,0,.55));
-        border-radius: 4px; overflow: hidden;
+        filter: drop-shadow(0 2px 6px rgba(0,0,0,.75));
+        border-radius: 2px; overflow: hidden;
     }
 
     /* card content */
     .card-body {
-        padding: 13px 18px 17px;
+        padding: 14px 18px 18px;
         display: flex; flex-direction: column;
         flex-grow: 1; overflow: hidden;
     }
     .source-badge {
         display: inline-flex; align-items: center;
         background: var(--badge-bg); color: var(--badge-text);
-        padding: 3px 10px; border-radius: 99px;
-        font-size: .68rem; font-weight: 700;
-        text-transform: uppercase; letter-spacing: .07em;
-        margin-bottom: 9px; border: 1px solid var(--badge-border);
+        padding: 3px 10px; border-radius: 2px;
+        font-size: .6rem; font-weight: 500;
+        text-transform: uppercase; letter-spacing: .1em;
+        margin-bottom: 10px; border: 1px solid var(--badge-border);
         width: fit-content;
+        font-family: var(--font-mono);
     }
     .badge-free {
         background: var(--green-bg) !important; color: var(--green) !important;
         border-color: var(--green-border) !important;
-        font-size: .63rem !important; padding: 3px 9px !important;
+        font-size: .58rem !important; padding: 2px 9px !important;
         margin-bottom: 0 !important;
+        text-shadow: 0 0 8px rgba(0,255,136,.45) !important;
     }
     .news-title {
-        color: var(--text-1); font-size: 1rem; font-weight: 700;
-        line-height: 1.45; margin-bottom: 9px;
-        transition: color .2s ease;
+        color: var(--text-1); font-size: .95rem; font-weight: 600;
+        line-height: 1.5; margin-bottom: 9px;
+        transition: color .2s ease, text-shadow .2s ease;
         display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+        font-family: var(--font-body);
     }
-    .news-card:hover .news-title { color: var(--badge-text); }
+    .news-card:hover .news-title {
+        color: var(--accent);
+        text-shadow: 0 0 14px rgba(0,255,247,.28);
+    }
     .news-meta {
-        font-size: .76rem; color: var(--text-2); margin-bottom: 10px;
+        font-size: .68rem; color: var(--text-2); margin-bottom: 10px;
         display: flex; align-items: center; gap: 5px; font-weight: 500;
+        font-family: var(--font-mono); letter-spacing: .02em;
     }
     .news-summary {
-        font-size: .86rem; line-height: 1.62; color: var(--text-3); flex-grow: 1;
+        font-size: .84rem; line-height: 1.65; color: var(--text-3); flex-grow: 1;
         display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
     }
     a { text-decoration: none !important; }
@@ -234,75 +297,114 @@ st.markdown("""
     .game-row {
         display: flex; align-items: center; gap: 13px;
         background: var(--surface);
-        backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
         border: 1px solid var(--border);
-        border-radius: 14px; padding: 11px 13px;
-        margin-bottom: 9px; position: relative; cursor: pointer;
+        border-left: 2px solid rgba(0,255,247,0.32);
+        border-radius: var(--r-sm); padding: 11px 13px;
+        margin-bottom: 8px; position: relative; cursor: pointer;
         transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
         text-decoration: none !important;
     }
     .game-row:hover {
-        transform: translateX(5px);
-        box-shadow: 0 8px 28px -6px rgba(0,0,0,.28);
+        transform: translateX(6px);
+        box-shadow: 0 0 26px -6px var(--accent-glow);
         border-color: var(--border-accent);
+        border-left-color: var(--accent);
     }
     .game-row-thumb {
         width: 88px; height: 56px; flex-shrink: 0;
-        border-radius: 8px;
+        border-radius: 2px;
         background-size: contain; background-position: center; background-repeat: no-repeat;
-        background-color: rgba(0,0,0,.28);
+        background-color: rgba(0,255,247,0.04);
         border: 1px solid var(--border);
+        filter: saturate(0.82); transition: filter .2s;
     }
+    .game-row:hover .game-row-thumb { filter: saturate(1.05); }
     [data-theme="light"] .game-row-thumb { background-color: rgba(0,0,0,.06); }
     .game-row-body { flex-grow: 1; overflow: hidden; min-width: 0; }
     .game-row-title {
-        color: var(--text-1); font-size: .84rem; font-weight: 700;
+        color: var(--text-1); font-size: .83rem; font-weight: 600;
         line-height: 1.35; margin-bottom: 5px;
         display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-        transition: color .2s;
+        transition: color .2s, text-shadow .2s;
+        font-family: var(--font-body);
     }
-    .game-row:hover .game-row-title { color: var(--badge-text); }
-    .game-row-meta { font-size: .68rem; color: var(--text-2); font-weight: 500; }
+    .game-row:hover .game-row-title {
+        color: var(--accent);
+        text-shadow: 0 0 10px rgba(0,255,247,.25);
+    }
+    .game-row-meta {
+        font-size: .64rem; color: var(--text-2); font-weight: 500;
+        font-family: var(--font-mono);
+    }
 
     /* ── Pagination ─────────────────────────────── */
-    .pagination-label {
-        text-align: center; color: var(--text-2);
-        font-weight: 700; font-size: .78rem;
-        letter-spacing: .08em; text-transform: uppercase;
+    /* .pagination-row is stamped by JS on the EXACT stHorizontalBlock.
+       Every selector starts with it — nothing outside is touched.      */
+
+    /* Flatten every Streamlit wrapper layer so all three cells share
+       the same vertical midline.                                        */
+    .pagination-row,
+    .pagination-row > [data-testid="stColumn"],
+    .pagination-row [data-testid="stVerticalBlock"],
+    .pagination-row [data-testid="stElementContainer"],
+    .pagination-row [data-testid="stMarkdownContainer"],
+    .pagination-row div.stButton {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        min-height: 0 !important;
+        gap: 0 !important;
     }
-    div[data-testid="stHorizontalBlock"]:has(.pagination-label) div.stButton > button {
-        width: 40px !important; height: 40px !important;
-        border-radius: 50% !important; padding: 0 !important;
+    /* stVerticalBlock is a column-direction flex — keep that axis */
+    .pagination-row [data-testid="stVerticalBlock"] {
+        flex-direction: column !important;
+    }
+
+    .pagination-label {
+        display: flex; align-items: center; justify-content: center;
+        height: 38px; width: 100%;
+        color: var(--accent);
+        font-weight: 600; font-size: .7rem;
+        letter-spacing: .18em; text-transform: uppercase;
+        font-family: var(--font-mono);
+        text-shadow: 0 0 8px rgba(0,255,247,.4);
+        white-space: nowrap;
+    }
+    .pagination-row div.stButton > button {
+        width: 38px !important; height: 38px !important;
+        border-radius: 2px !important; padding: 0 !important;
         background: var(--surface) !important;
         border: 1px solid var(--border) !important;
-        color: var(--text-3) !important;
-        font-size: .85rem !important;
-        backdrop-filter: blur(10px);
+        color: var(--accent) !important;
+        font-size: .82rem !important;
         transition: all .22s ease !important;
         display: flex !important; align-items: center !important;
         justify-content: center !important; line-height: 1 !important;
+        flex-shrink: 0 !important;
     }
-    div[data-testid="stHorizontalBlock"]:has(.pagination-label) div.stButton > button:hover {
-        background: rgba(124,58,237,.13) !important;
+    .pagination-row div.stButton > button:hover {
+        background: rgba(0,255,247,.09) !important;
         border-color: var(--accent) !important;
-        color: var(--badge-text) !important;
-        box-shadow: 0 0 0 3px rgba(124,58,237,.13) !important;
-        transform: scale(1.12) !important;
+        box-shadow: 0 0 18px -3px var(--accent-glow) !important;
+        transform: scale(1.1) !important;
     }
-    div[data-testid="stHorizontalBlock"]:has(.pagination-label) div.stButton > button:disabled {
-        opacity: .2 !important; transform: none !important; box-shadow: none !important;
+    .pagination-row div.stButton > button:disabled {
+        opacity: .15 !important; transform: none !important; box-shadow: none !important;
     }
 
     /* ── Alerts ─────────────────────────────────── */
     div[data-testid="stAlert"] {
         border-radius: var(--r-sm) !important;
-        backdrop-filter: blur(10px);
+        border-left-width: 2px !important;
     }
 
     /* ── Expiry labels ──────────────────────────── */
-    .expiry-ok     { color: var(--text-2); }
-    .expiry-soon   { color: #f59e0b; font-weight: 600; }
-    .expiry-urgent { color: #ef4444; font-weight: 600; }
+    .expiry-ok     { color: var(--text-2); font-family: var(--font-mono); }
+    .expiry-soon   { color: #fbbf24; font-weight: 600; font-family: var(--font-mono); }
+    .expiry-urgent { color: #ff4060; font-weight: 600; font-family: var(--font-mono);
+                     text-shadow: 0 0 8px rgba(255,64,96,.4); }
 </style>
 """, unsafe_allow_html=True)
 
@@ -314,30 +416,76 @@ components.html("""
     if (p.getElementById('theme-btn')) return;
     const btn = p.createElement('button');
     btn.id = 'theme-btn';
-    const sun = `<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
-    const moon = `<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+    const sun = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+    const moon = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
     let light = false;
-    btn.style.cssText = 'position:fixed;bottom:30px;right:30px;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,0.1);background:rgba(13,25,48,0.88);color:#94a3b8;cursor:pointer;z-index:9999999;box-shadow:0 8px 28px rgba(0,0,0,0.32);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:all .28s cubic-bezier(.34,1.56,.64,1);display:flex;align-items:center;justify-content:center;outline:none;';
+    btn.style.cssText = [
+        'position:fixed','bottom:28px','right:28px',
+        'width:44px','height:44px',
+        'border-radius:3px',
+        'border:1px solid rgba(0,255,247,0.25)',
+        'background:rgba(4,9,15,0.90)',
+        'color:#00fff7','cursor:pointer','z-index:9999999',
+        'box-shadow:0 0 22px -6px rgba(0,255,247,0.35)',
+        'backdrop-filter:blur(12px)','-webkit-backdrop-filter:blur(12px)',
+        'transition:all .28s cubic-bezier(.34,1.56,.64,1)',
+        'display:flex','align-items:center','justify-content:center','outline:none'
+    ].join(';');
     btn.innerHTML = sun;
-    btn.onmouseover = () => btn.style.transform = 'scale(1.12)';
-    btn.onmouseout  = () => btn.style.transform = 'scale(1)';
+    btn.onmouseover = () => {
+        btn.style.transform = 'scale(1.1)';
+        btn.style.boxShadow = '0 0 30px -4px rgba(0,255,247,0.55)';
+    };
+    btn.onmouseout  = () => {
+        btn.style.transform = 'scale(1)';
+        btn.style.boxShadow = light
+            ? '0 0 22px -6px rgba(0,95,181,0.35)'
+            : '0 0 22px -6px rgba(0,255,247,0.35)';
+    };
     btn.onclick = () => {
         light = !light;
         if (light) {
             p.documentElement.setAttribute('data-theme','light');
             btn.innerHTML = moon;
-            btn.style.background = 'rgba(248,250,252,0.96)';
-            btn.style.color = '#1e293b';
-            btn.style.border = '1px solid rgba(0,0,0,0.1)';
+            btn.style.background = 'rgba(234,245,248,0.96)';
+            btn.style.color = '#005fb5';
+            btn.style.border = '1px solid rgba(0,95,181,0.25)';
+            btn.style.boxShadow = '0 0 22px -6px rgba(0,95,181,0.35)';
         } else {
             p.documentElement.removeAttribute('data-theme');
             btn.innerHTML = sun;
-            btn.style.background = 'rgba(13,25,48,0.88)';
-            btn.style.color = '#94a3b8';
-            btn.style.border = '1px solid rgba(255,255,255,0.1)';
+            btn.style.background = 'rgba(4,9,15,0.90)';
+            btn.style.color = '#00fff7';
+            btn.style.border = '1px solid rgba(0,255,247,0.25)';
+            btn.style.boxShadow = '0 0 22px -6px rgba(0,255,247,0.35)';
         }
     };
     p.body.appendChild(btn);
+})();
+</script>
+""", height=0, width=0)
+
+# Pagination row marker — separate from theme toggle so it is never blocked
+# by the theme button's early-return guard.
+# The observer is stored on window.parent so it survives iframe reuse across
+# Streamlit re-renders, and mark() runs immediately on each fresh iframe load.
+components.html("""
+<script>
+(function() {
+    var p = window.parent.document;
+    function mark() {
+        p.querySelectorAll('.pagination-label').forEach(function(label) {
+            var block = label.closest('[data-testid="stHorizontalBlock"]');
+            if (block && !block.classList.contains('pagination-row')) {
+                block.classList.add('pagination-row');
+            }
+        });
+    }
+    mark();
+    if (!window.parent._paginationObserver) {
+        window.parent._paginationObserver = new MutationObserver(mark);
+        window.parent._paginationObserver.observe(p.body, {childList: true, subtree: true});
+    }
 })();
 </script>
 """, height=0, width=0)
@@ -347,9 +495,6 @@ for _key in ("free_games_page", "ai_news_page", "games_news_page"):
         st.session_state[_key] = 0
 
 # ── On-visit refresh ──────────────────────────────────────────────────────────
-# Triggered once per browser session. Fetches fresh data in a background thread
-# if the cached JSON is older than 30 minutes (between scheduled runs).
-
 _STALE_AFTER_MINUTES = 30
 _fetch_lock = threading.Lock()
 
@@ -375,7 +520,7 @@ def _trigger_on_visit_refresh():
         if age_min < _STALE_AFTER_MINUTES:
             return
     except OSError:
-        pass  # file missing — fetch immediately
+        pass
     threading.Thread(target=_background_fetch, daemon=True).start()
 
 _trigger_on_visit_refresh()
@@ -473,7 +618,10 @@ def count_items(json_file):
 def section_header(icon, title, count=None):
     pill = f'<span class="section-pill">{count}</span>' if count else ""
     st.markdown(
-        f'<div class="section-hdr"><h2>{icon}&nbsp; {title}</h2>{pill}</div>',
+        f'<div class="section-hdr">'
+        f'<span class="section-hdr-prefix">//</span>'
+        f'<h2>{icon}&nbsp; {title}</h2>'
+        f'{pill}</div>',
         unsafe_allow_html=True
     )
 
@@ -517,6 +665,14 @@ def render_news_cards(json_file_path, num_cols=3, per_page=None, page_key=None):
     if not items:
         st.info("No articles available yet.")
         return
+
+    def _pub_ts(item):
+        try:
+            return parsedate_to_datetime(item.get("published", "")).timestamp()
+        except Exception:
+            return 0.0
+
+    items.sort(key=_pub_ts, reverse=True)
 
     if per_page and page_key:
         total_pages = max(1, (len(items) + per_page - 1) // per_page)
@@ -582,7 +738,6 @@ with tab_games:
             except Exception:
                 free_games = []
 
-            # Drop expired entries before pagination
             active_games = [g for g in free_games if not is_expired(g.get("end_date"))]
 
             if not active_games:

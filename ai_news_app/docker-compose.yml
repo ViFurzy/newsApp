@@ -1,5 +1,4 @@
 services:
-
   ai-news-app:
     build: .
     image: ai-news-app:latest
@@ -8,7 +7,7 @@ services:
     ports:
       - "8501:8501"
     volumes:
-      - ./data:/app/data
+      - news_data:/app/data
     env_file:
       - .env
     networks:
@@ -20,17 +19,9 @@ services:
       retries: 3
       start_period: 25s
 
+volumes:
+  news_data:
+
 networks:
   app-network:
     driver: bridge
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Nginx Proxy Manager users:
-#   Replace the `app-network` block above with:
-#
-#   app-network:
-#     external: true
-#     name: proxy-network
-#
-#   and make sure both services are attached to that network.
-# ─────────────────────────────────────────────────────────────────────────────

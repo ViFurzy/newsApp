@@ -4,10 +4,9 @@ import json
 import os
 import re
 import time
-import calendar as cal_module
 import threading
 import requests
-from datetime import datetime, date
+from datetime import datetime
 from email.utils import parsedate_to_datetime
 from PIL import Image
 
@@ -30,7 +29,6 @@ AI_NEWS_FILE = os.path.join(DATA_DIR, "news.json")
 GAMES_NEWS_FILE = os.path.join(DATA_DIR, "games_news.json")
 FREE_GAMES_FILE = os.path.join(DATA_DIR, "free_games.json")
 ANIME_NEWS_FILE = os.path.join(DATA_DIR, "anime_news.json")
-ANIME_CALENDAR_FILE = os.path.join(DATA_DIR, "anime_calendar.json")
 
 GAMES_PER_PAGE = 8
 JIKAN_BASE = "https://api.jikan.moe/v4"
@@ -38,9 +36,9 @@ JIKAN_BASE = "https://api.jikan.moe/v4"
 RSS_ICON = '<svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;flex-shrink:0;opacity:.7;"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg>'
 CLOCK_ICON = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="min-width:10px;opacity:.6;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>'
 CHECK_ICON = '<svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;flex-shrink:0;"><polyline points="20 6 9 17 4 12"></polyline></svg>'
-STAR_ICON = '<svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor" stroke="none" style="margin-right:4px;flex-shrink:0;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'
+STAR_ICON = '<svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor" stroke="none" style="margin-right:3px;flex-shrink:0;vertical-align:-1px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'
 
-# ── CSS ─────────────────────────────────────────────────────────────────────
+# ── CSS ──────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
@@ -133,7 +131,7 @@ st.markdown("""
         padding: 0 1.4rem;
         font-family: var(--font-body) !important;
         font-weight: 500;
-        font-size: .82rem;
+        font-size: .902rem;
         letter-spacing: .02em;
         text-transform: none;
         color: var(--text-2) !important;
@@ -169,7 +167,7 @@ st.markdown("""
     }
     .section-hdr-cat {
         font-family: var(--font-mono);
-        font-size: .62rem;
+        font-size: .682rem;
         font-weight: 500;
         color: var(--accent);
         letter-spacing: .12em;
@@ -178,7 +176,7 @@ st.markdown("""
     }
     .section-hdr h2 {
         font-family: var(--font-display) !important;
-        font-size: 1.15rem;
+        font-size: 1.265rem;
         font-weight: 700;
         color: var(--text-1);
         margin: 0;
@@ -186,7 +184,7 @@ st.markdown("""
     }
     .section-pill {
         margin-left: auto;
-        font-size: .58rem;
+        font-size: .638rem;
         font-weight: 500;
         color: var(--text-3);
         background: var(--surface);
@@ -260,7 +258,7 @@ st.markdown("""
         color: var(--badge-text);
         padding: 2px 8px;
         border-radius: 2px;
-        font-size: .58rem;
+        font-size: .638rem;
         font-weight: 500;
         text-transform: uppercase;
         letter-spacing: .1em;
@@ -273,29 +271,14 @@ st.markdown("""
         background: var(--green-bg) !important;
         color: var(--green) !important;
         border-color: var(--green-border) !important;
-        font-size: .56rem !important;
+        font-size: .616rem !important;
         padding: 2px 7px !important;
         margin-bottom: 0 !important;
-    }
-    .badge-score {
-        background: transparent !important;
-        color: var(--accent) !important;
-        border-color: var(--badge-border) !important;
-        font-size: .58rem !important;
-        padding: 2px 7px !important;
-    }
-    .badge-status {
-        background: transparent !important;
-        color: var(--text-3) !important;
-        border-color: var(--border) !important;
-        font-size: .56rem !important;
-        padding: 2px 7px !important;
-        margin-left: 4px !important;
     }
     .news-title {
         color: var(--text-1);
         font-family: var(--font-display) !important;
-        font-size: .95rem;
+        font-size: 1.045rem;
         font-weight: 600;
         line-height: 1.45;
         margin-bottom: 8px;
@@ -307,7 +290,7 @@ st.markdown("""
     }
     .news-card:hover .news-title { color: var(--accent); }
     .news-meta {
-        font-size: .64rem;
+        font-size: .704rem;
         color: var(--text-3);
         margin-bottom: 8px;
         display: flex;
@@ -316,7 +299,7 @@ st.markdown("""
         font-family: var(--font-mono);
     }
     .news-summary {
-        font-size: .82rem;
+        font-size: .902rem;
         line-height: 1.6;
         color: var(--text-2);
         flex-grow: 1;
@@ -327,38 +310,7 @@ st.markdown("""
     }
     a { text-decoration: none !important; }
 
-    /* ── Anime search card ─────────────────────────── */
-    .anime-card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: var(--r-card);
-        margin-bottom: 14px;
-        color: var(--text-1);
-        transition: background .22s ease, border-color .22s ease, transform .22s ease;
-        display: flex;
-        flex-direction: column;
-        position: relative;
-        overflow: hidden;
-        height: 380px;
-    }
-    .anime-card:hover {
-        background: var(--surface-hover);
-        border-color: var(--border-hover);
-        transform: translateY(-3px);
-        box-shadow: 0 8px 28px rgba(0,0,0,.32);
-    }
-    .anime-card-img {
-        width: 100%;
-        height: 200px;
-        flex-shrink: 0;
-        background-size: cover;
-        background-position: top center;
-        filter: brightness(0.85);
-        transition: filter .22s ease;
-    }
-    .anime-card:hover .anime-card-img { filter: brightness(0.95); }
-
-    /* ── Game list rows ────────────────────────────── */
+    /* ── Game / Anime list rows ────────────────────── */
     .game-row {
         display: flex;
         align-items: center;
@@ -381,11 +333,9 @@ st.markdown("""
         transform: translateX(4px);
     }
     .game-row-thumb {
-        width: 88px;
-        height: 56px;
         flex-shrink: 0;
         border-radius: 2px;
-        background-size: contain;
+        background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
         background-color: rgba(255,255,255,.04);
@@ -397,10 +347,10 @@ st.markdown("""
     .game-row-body { flex-grow: 1; overflow: hidden; min-width: 0; }
     .game-row-title {
         color: var(--text-1);
-        font-size: .82rem;
+        font-size: .902rem;
         font-weight: 500;
         line-height: 1.35;
-        margin-bottom: 5px;
+        margin-bottom: 4px;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
@@ -409,103 +359,7 @@ st.markdown("""
     }
     .game-row:hover .game-row-title { color: var(--accent); }
     .game-row-meta {
-        font-size: .62rem;
-        color: var(--text-3);
-        font-family: var(--font-mono);
-    }
-
-    /* ── Calendar ──────────────────────────────────── */
-    .cal-wrap {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: var(--r-card);
-        padding: 14px;
-        margin-bottom: 14px;
-    }
-    .cal-month-label {
-        font-family: var(--font-display);
-        font-size: .9rem;
-        font-weight: 600;
-        color: var(--text-1);
-        text-align: center;
-        margin-bottom: 10px;
-    }
-    .cal-header-days {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        gap: 3px;
-        margin-bottom: 4px;
-    }
-    .cal-day-name {
-        text-align: center;
-        font-family: var(--font-mono);
-        font-size: .55rem;
-        color: var(--text-3);
-        padding: 3px 0;
-        text-transform: uppercase;
-        letter-spacing: .06em;
-    }
-    .cal-grid {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        gap: 3px;
-    }
-    .cal-cell {
-        aspect-ratio: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        border-radius: 3px;
-        border: 1px solid transparent;
-        position: relative;
-        min-width: 0;
-    }
-    .cal-empty { background: transparent; }
-    .cal-day-num {
-        font-family: var(--font-mono);
-        font-size: .65rem;
-        color: var(--text-2);
-        line-height: 1;
-    }
-    .cal-today { border-color: var(--accent) !important; background: var(--accent-dim); }
-    .cal-today .cal-day-num { color: var(--accent); font-weight: 600; }
-    .cal-has-entry { background: rgba(200,112,56,0.07); }
-    .cal-dot {
-        width: 4px;
-        height: 4px;
-        border-radius: 50%;
-        background: var(--accent);
-        margin-top: 2px;
-        flex-shrink: 0;
-    }
-    .cal-dot-done { background: var(--green); }
-
-    /* ── Calendar entry rows ───────────────────────── */
-    .cal-entry {
-        display: flex;
-        align-items: flex-start;
-        gap: 10px;
-        padding: 9px 12px;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-left: 2px solid var(--accent);
-        border-radius: var(--r-sm);
-        margin-bottom: 6px;
-    }
-    .cal-entry.done {
-        border-left-color: var(--green);
-        opacity: 0.6;
-    }
-    .cal-entry-body { flex-grow: 1; min-width: 0; }
-    .cal-entry-title {
-        font-size: .82rem;
-        font-weight: 500;
-        color: var(--text-1);
-        margin-bottom: 3px;
-    }
-    .cal-entry-meta {
-        font-size: .6rem;
+        font-size: .682rem;
         color: var(--text-3);
         font-family: var(--font-mono);
     }
@@ -536,7 +390,7 @@ st.markdown("""
         width: 100%;
         color: var(--text-2);
         font-weight: 500;
-        font-size: .68rem;
+        font-size: .748rem;
         letter-spacing: .08em;
         font-family: var(--font-mono);
         white-space: nowrap;
@@ -549,7 +403,7 @@ st.markdown("""
         background: var(--surface) !important;
         border: 1px solid var(--border) !important;
         color: var(--text-2) !important;
-        font-size: .78rem !important;
+        font-size: .858rem !important;
         transition: all .18s ease !important;
         display: flex !important;
         align-items: center !important;
@@ -578,19 +432,13 @@ st.markdown("""
     .expiry-soon   { color: #d4a017; font-weight: 600; font-family: var(--font-mono); }
     .expiry-urgent { color: #c94040; font-weight: 600; font-family: var(--font-mono); }
 
-    /* ── Form elements override ─────────────────────── */
-    .stSelectbox label, .stDateInput label, .stTextInput label, .stTextArea label {
-        font-size: .72rem !important;
+    /* ── Select overrides ──────────────────────────── */
+    .stSelectbox label {
+        font-size: .792rem !important;
         color: var(--text-2) !important;
         font-family: var(--font-mono) !important;
         text-transform: uppercase !important;
         letter-spacing: .08em !important;
-    }
-    [data-testid="stForm"] {
-        background: var(--surface) !important;
-        border: 1px solid var(--border) !important;
-        border-radius: var(--r-card) !important;
-        padding: 16px !important;
     }
     div[data-baseweb="select"] {
         background: var(--surface) !important;
@@ -669,11 +517,6 @@ components.html("""
 for _key in ("free_games_page", "ai_news_page", "games_news_page", "anime_news_page"):
     if _key not in st.session_state:
         st.session_state[_key] = 0
-
-if "cal_year" not in st.session_state:
-    st.session_state.cal_year = datetime.now().year
-if "cal_month" not in st.session_state:
-    st.session_state.cal_month = datetime.now().month
 
 # ── On-visit refresh ──────────────────────────────────────────────────────────
 _STALE_AFTER_MINUTES = 30
@@ -887,67 +730,6 @@ def render_news_cards(json_file_path, num_cols=3, per_page=None, page_key=None):
                           centered=True)
 
 
-# ── Calendar helpers ──────────────────────────────────────────────────────────
-
-def load_calendar():
-    if not os.path.exists(ANIME_CALENDAR_FILE):
-        return []
-    try:
-        with open(ANIME_CALENDAR_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
-        return []
-
-
-def save_calendar(entries):
-    os.makedirs(DATA_DIR, exist_ok=True)
-    with open(ANIME_CALENDAR_FILE, "w", encoding="utf-8") as f:
-        json.dump(entries, f, ensure_ascii=False, indent=2)
-
-
-def render_calendar_grid(year, month, entries):
-    entry_map = {}
-    for e in entries:
-        d = e.get("date", "")
-        if d not in entry_map:
-            entry_map[d] = []
-        entry_map[d].append(e)
-
-    today = date.today()
-    month_name = cal_module.month_name[month]
-
-    html = f'<div class="cal-wrap"><div class="cal-month-label">{month_name} {year}</div>'
-    html += '<div class="cal-header-days">'
-    for dn in ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]:
-        html += f'<div class="cal-day-name">{dn}</div>'
-    html += '</div><div class="cal-grid">'
-
-    for week in cal_module.monthcalendar(year, month):
-        for day_num in week:
-            if day_num == 0:
-                html += '<div class="cal-cell cal-empty"></div>'
-                continue
-            date_str = f"{year:04d}-{month:02d}-{day_num:02d}"
-            day_entries = entry_map.get(date_str, [])
-            is_today = (date(year, month, day_num) == today)
-
-            classes = "cal-cell"
-            if is_today:
-                classes += " cal-today"
-            if day_entries:
-                classes += " cal-has-entry"
-
-            dots = ""
-            for e in day_entries[:3]:
-                dot_cls = "cal-dot cal-dot-done" if e.get("done") else "cal-dot"
-                dots += f'<span class="{dot_cls}"></span>'
-
-            html += f'<div class="{classes}"><span class="cal-day-num">{day_num}</span>{dots}</div>'
-
-    html += '</div></div>'
-    return html
-
-
 # ── Anime genre search ────────────────────────────────────────────────────────
 
 def fetch_genres():
@@ -955,7 +737,6 @@ def fetch_genres():
         try:
             resp = requests.get(f"{JIKAN_BASE}/genres/anime", timeout=8)
             data = resp.json().get("data", [])
-            # Keep only common genres
             st.session_state.jikan_genres = sorted(data, key=lambda g: g["name"])
         except Exception:
             st.session_state.jikan_genres = []
@@ -968,7 +749,7 @@ def fetch_anime_by_genre(genre_id, sort_by="score"):
         try:
             resp = requests.get(
                 f"{JIKAN_BASE}/anime",
-                params={"genres": genre_id, "order_by": sort_by, "sort": "desc", "limit": 12, "sfw": "true"},
+                params={"genres": genre_id, "order_by": sort_by, "sort": "desc", "limit": 20, "sfw": "true"},
                 timeout=10
             )
             st.session_state[cache_key] = resp.json().get("data", [])
@@ -977,33 +758,32 @@ def fetch_anime_by_genre(genre_id, sort_by="score"):
     return st.session_state[cache_key]
 
 
-def render_anime_search_card(anime):
+def render_anime_row(anime):
     title = anime.get("title", "Unknown")
     score = anime.get("score")
     episodes = anime.get("episodes")
     year = anime.get("year", "")
-    status = anime.get("status", "")
-    synopsis = strip_html((anime.get("synopsis") or ""))[:180]
-    if len(synopsis) == 180:
-        synopsis += "…"
-    image_url = anime.get("images", {}).get("jpg", {}).get("large_image_url", "")
+    status = (anime.get("status") or "").replace("Finished Airing", "Finished").replace("Currently Airing", "Airing")
+    image_url = anime.get("images", {}).get("jpg", {}).get("image_url", "")
     url = anime.get("url", "#")
 
-    score_html = f'<span class="source-badge badge-score">{STAR_ICON}{score}</span>' if score else ""
-    status_short = status.replace(" Airing", "").replace("Finished ", "")
-    status_html = f'<span class="source-badge badge-status">{status_short}</span>' if status else ""
-    meta_parts = [str(year) if year else "", f"{episodes} ep" if episodes else ""]
-    meta = " · ".join(p for p in meta_parts if p)
+    meta_parts = []
+    if score:
+        meta_parts.append(f"★ {score}")
+    if year:
+        meta_parts.append(str(year))
+    if episodes:
+        meta_parts.append(f"{episodes} ep")
+    if status:
+        meta_parts.append(status)
+    meta = " · ".join(meta_parts)
 
-    return f"""<div class="anime-card">
-<a href="{url}" target="_blank" class="card-link" aria-label="{title}"></a>
-<div class="anime-card-img" style="background-image:url('{image_url}');"></div>
-<div class="card-body">
-<div style="display:flex;gap:4px;align-items:center;margin-bottom:8px;">{score_html}{status_html}</div>
-<div class="news-title" style="-webkit-line-clamp:2;font-size:.88rem;">{title}</div>
-<div class="news-meta">{meta}</div>
-<div class="news-summary" style="-webkit-line-clamp:2;font-size:.76rem;">{synopsis}</div>
-</div></div>"""
+    return f"""<a href="{url}" target="_blank" class="game-row">
+<div class="game-row-thumb" style="width:56px;height:78px;background-image:url('{image_url}');"></div>
+<div class="game-row-body">
+<div class="game-row-title">{title}</div>
+<div class="game-row-meta">{meta}</div>
+</div></a>"""
 
 
 # ── Tabs ──────────────────────────────────────────────────────────────────────
@@ -1057,7 +837,7 @@ with tab_games:
                         if end_label else ""
                     )
                     row_html = f"""<a href="{game['link']}" target="_blank" class="game-row">
-<div class="game-row-thumb" style="background-image:url('{game.get('thumbnail', '')}');"></div>
+<div class="game-row-thumb" style="width:88px;height:56px;background-size:contain;background-image:url('{game.get('thumbnail', '')}');"></div>
 <div class="game-row-body">
 <div style="margin-bottom:4px;"><span class="source-badge badge-free">{CHECK_ICON}FREE · was {worth}</span></div>
 <div class="game-row-title">{game['title']}</div>
@@ -1072,7 +852,6 @@ with tab_games:
 
 # ── Anime Tab ─────────────────────────────────────────────────────────────────
 with tab_anime:
-    # ── Anime News ───────────────────────────────────────────────────────────
     n = count_items(ANIME_NEWS_FILE)
     section_header("ANIME", "Anime News", n or None)
     render_news_cards(ANIME_NEWS_FILE, per_page=6, page_key="anime_news_page")
@@ -1083,165 +862,39 @@ with tab_anime:
         unsafe_allow_html=True
     )
 
-    col_search, col_cal = st.columns([3, 2], gap="large")
+    section_header("SEARCH", "Browse by Genre")
 
-    # ── Genre Search ─────────────────────────────────────────────────────────
-    with col_search:
-        section_header("SEARCH", "Browse by Genre")
+    genres = fetch_genres()
+    genre_names = ["— Select a genre —"] + [g["name"] for g in genres]
 
-        genres = fetch_genres()
-        genre_names = ["— Select a genre —"] + [g["name"] for g in genres]
+    sc1, sc2 = st.columns([3, 1])
+    with sc1:
+        selected_genre_name = st.selectbox(
+            "Genre", genre_names, key="genre_select", label_visibility="collapsed"
+        )
+    with sc2:
+        sort_option = st.selectbox(
+            "Sort", ["Score", "Popularity", "Members"],
+            key="genre_sort", label_visibility="collapsed"
+        )
 
-        sc1, sc2 = st.columns([3, 1])
-        with sc1:
-            selected_genre_name = st.selectbox(
-                "Genre", genre_names, key="genre_select", label_visibility="collapsed"
-            )
-        with sc2:
-            sort_option = st.selectbox(
-                "Sort", ["Score", "Popularity", "Members"],
-                key="genre_sort", label_visibility="collapsed"
-            )
+    sort_map = {"Score": "score", "Popularity": "popularity", "Members": "members"}
+    sort_by = sort_map.get(sort_option, "score")
 
-        sort_map = {"Score": "score", "Popularity": "popularity", "Members": "members"}
-        sort_by = sort_map.get(sort_option, "score")
-
-        if selected_genre_name != "— Select a genre —":
-            selected_genre = next((g for g in genres if g["name"] == selected_genre_name), None)
-            if selected_genre:
-                with st.spinner("Fetching anime…"):
-                    results = fetch_anime_by_genre(selected_genre["mal_id"], sort_by)
-
-                if results:
-                    cols = st.columns(3, gap="small")
-                    for i, anime in enumerate(results):
-                        with cols[i % 3]:
-                            st.markdown(render_anime_search_card(anime), unsafe_allow_html=True)
-                else:
-                    st.info("No results found for this genre.")
-        else:
-            st.markdown(
-                '<div style="padding:32px 0;text-align:center;color:var(--text-3);'
-                'font-family:var(--font-mono);font-size:.72rem;letter-spacing:.08em;">'
-                'SELECT A GENRE TO BROWSE ANIME</div>',
-                unsafe_allow_html=True
-            )
-
-    # ── Release Calendar ─────────────────────────────────────────────────────
-    with col_cal:
-        section_header("CALENDAR", "Release Tracker")
-
-        entries = load_calendar()
-
-        # Month navigation
-        nav1, nav2, nav3 = st.columns([1, 3, 1])
-        with nav1:
-            if st.button("◀", key="cal_prev"):
-                if st.session_state.cal_month == 1:
-                    st.session_state.cal_month = 12
-                    st.session_state.cal_year -= 1
-                else:
-                    st.session_state.cal_month -= 1
-                st.rerun()
-        with nav2:
-            st.markdown(
-                f'<div style="text-align:center;font-family:var(--font-mono);'
-                f'font-size:.65rem;color:var(--text-2);letter-spacing:.08em;padding:8px 0;">'
-                f'{cal_module.month_name[st.session_state.cal_month].upper()} {st.session_state.cal_year}'
-                f'</div>',
-                unsafe_allow_html=True
-            )
-        with nav3:
-            if st.button("▶", key="cal_next"):
-                if st.session_state.cal_month == 12:
-                    st.session_state.cal_month = 1
-                    st.session_state.cal_year += 1
-                else:
-                    st.session_state.cal_month += 1
-                st.rerun()
-
-        # Calendar grid
+    if selected_genre_name != "— Select a genre —":
+        selected_genre = next((g for g in genres if g["name"] == selected_genre_name), None)
+        if selected_genre:
+            with st.spinner("Fetching anime…"):
+                results = fetch_anime_by_genre(selected_genre["mal_id"], sort_by)
+            if results:
+                for anime in results:
+                    st.markdown(render_anime_row(anime), unsafe_allow_html=True)
+            else:
+                st.info("No results found for this genre.")
+    else:
         st.markdown(
-            render_calendar_grid(st.session_state.cal_year, st.session_state.cal_month, entries),
+            '<div style="padding:40px 0;text-align:center;color:var(--text-3);'
+            'font-family:var(--font-mono);font-size:.792rem;letter-spacing:.1em;">'
+            'SELECT A GENRE TO BROWSE ANIME</div>',
             unsafe_allow_html=True
         )
-
-        # Entries for current month
-        month_prefix = f"{st.session_state.cal_year:04d}-{st.session_state.cal_month:02d}"
-        month_entries = sorted(
-            [e for e in entries if e.get("date", "").startswith(month_prefix)],
-            key=lambda e: e.get("date", "")
-        )
-
-        if month_entries:
-            st.markdown(
-                '<div style="font-family:var(--font-mono);font-size:.6rem;color:var(--text-3);'
-                'letter-spacing:.08em;text-transform:uppercase;margin:12px 0 8px;">Releases this month</div>',
-                unsafe_allow_html=True
-            )
-            for entry in month_entries:
-                done_cls = " done" if entry.get("done") else ""
-                notes_html = (
-                    f'<div style="margin-top:2px;font-size:.58rem;color:var(--text-3);'
-                    f'font-family:var(--font-mono);">{entry["notes"]}</div>'
-                    if entry.get("notes") else ""
-                )
-                st.markdown(
-                    f'<div class="cal-entry{done_cls}">'
-                    f'<div class="cal-entry-body">'
-                    f'<div class="cal-entry-title">{entry["show"]}</div>'
-                    f'<div class="cal-entry-meta">{entry.get("episode", "")} · {entry.get("date", "")}</div>'
-                    f'{notes_html}</div></div>',
-                    unsafe_allow_html=True
-                )
-                btn_col1, btn_col2 = st.columns(2)
-                with btn_col1:
-                    done_label = "✓ Done" if not entry.get("done") else "↩ Undo"
-                    if st.button(done_label, key=f"done_{entry['id']}", use_container_width=True):
-                        for e in entries:
-                            if e["id"] == entry["id"]:
-                                e["done"] = not e.get("done")
-                                break
-                        save_calendar(entries)
-                        st.rerun()
-                with btn_col2:
-                    if st.button("Delete", key=f"del_{entry['id']}", use_container_width=True):
-                        entries = [e for e in entries if e["id"] != entry["id"]]
-                        save_calendar(entries)
-                        st.rerun()
-
-        # Add entry form
-        st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
-        with st.form("add_release_form", clear_on_submit=True):
-            st.markdown(
-                '<div style="font-family:var(--font-mono);font-size:.6rem;color:var(--text-3);'
-                'letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;">Add Release</div>',
-                unsafe_allow_html=True
-            )
-            show_name = st.text_input("Show name", placeholder="e.g. One Piece", label_visibility="collapsed")
-            fc1, fc2 = st.columns(2)
-            with fc1:
-                episode = st.text_input("Episode / Season", placeholder="e.g. S1E12", label_visibility="collapsed")
-            with fc2:
-                release_date = st.date_input(
-                    "Date",
-                    value=date.today(),
-                    label_visibility="collapsed"
-                )
-            notes = st.text_input("Notes (optional)", placeholder="Optional notes", label_visibility="collapsed")
-            submitted = st.form_submit_button("Add to Calendar", use_container_width=True)
-            if submitted and show_name.strip():
-                new_entry = {
-                    "id": str(int(time.time() * 1000)),
-                    "show": show_name.strip(),
-                    "episode": episode.strip(),
-                    "date": str(release_date),
-                    "notes": notes.strip(),
-                    "done": False
-                }
-                entries.append(new_entry)
-                save_calendar(entries)
-                # Navigate to the added entry's month
-                st.session_state.cal_year = release_date.year
-                st.session_state.cal_month = release_date.month
-                st.rerun()

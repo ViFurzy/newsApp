@@ -540,13 +540,28 @@ components.html("""
 </script>
 """, height=0, width=0)
 
-# ── Tab persistence ───────────────────────────────────────────────────────────
+# ── Tab persistence + loading overlay ────────────────────────────────────────
 components.html("""
 <script>
 (function() {
     var p = window.parent.document;
     var TAB_KEYS = ['ai', 'gaming', 'anime'];
     var LS_KEY = '_da_active_tab';
+
+    // Show overlay immediately to hide tab flash on initial load
+    if (!p.getElementById('da-loader') && !window.parent._daTabRestored) {
+        var overlay = p.createElement('div');
+        overlay.id = 'da-loader';
+        overlay.style.cssText = 'position:fixed;inset:0;background:#0d0d0e;z-index:9999999;transition:opacity 0.15s ease;pointer-events:none;';
+        p.body.appendChild(overlay);
+    }
+
+    function hideLoader() {
+        var el = p.getElementById('da-loader');
+        if (!el) return;
+        el.style.opacity = '0';
+        setTimeout(function() { if (el && el.parentNode) el.parentNode.removeChild(el); }, 180);
+    }
 
     function getTabs() {
         return p.querySelectorAll('[data-baseweb="tab"]');
@@ -563,18 +578,23 @@ components.html("""
     }
 
     function restoreTab() {
-        if (window.parent._daTabRestored) { attachListeners(); return; }
+        if (window.parent._daTabRestored) { attachListeners(); hideLoader(); return; }
         var tabs = getTabs();
         if (!tabs.length) return;
         window.parent._daTabRestored = true;
         var saved;
         try { saved = window.parent.localStorage.getItem(LS_KEY); } catch(e) {}
         var idx = TAB_KEYS.indexOf(saved);
-        if (idx > 0 && tabs[idx]) { tabs[idx].click(); }
+        if (idx > 0 && tabs[idx]) {
+            tabs[idx].click();
+            setTimeout(hideLoader, 120);
+        } else {
+            hideLoader();
+        }
         attachListeners();
     }
 
-    setTimeout(restoreTab, 180);
+    restoreTab();
 
     if (!window.parent._daTabObserver) {
         window.parent._daTabObserver = new MutationObserver(function() {
@@ -933,7 +953,7 @@ with tab_games:
                     )
 
                 st.markdown(
-                    f'<div style="display:flex;flex-direction:column;gap:{_ROW_GAP}px;'
+                    f'<div id="fg-container" style="display:flex;flex-direction:column;gap:{_ROW_GAP}px;'
                     f'height:{_GAMES_LIST_HEIGHT}px;overflow-y:auto;padding-right:4px;">'
                     f'{rows_html}</div>',
                     unsafe_allow_html=True
@@ -944,51 +964,132 @@ with tab_games:
                     render_pagination("free_games_page", total_pages,
                                       prev_key="prev_btn", next_key="next_btn")
 
+    components.html("""
+<script>
+(function() {
+    var p = window.parent.document;
+    function syncHeight() {
+        var fg = p.getElementById('fg-container');
+        if (!fg) return;
+        var block = fg.closest('[data-testid="stHorizontalBlock"]');
+        if (!block) return;
+        var cols = block.querySelectorAll(':scope > [data-testid="stColumn"]');
+        if (cols.length < 2) return;
+        var newsCol = cols[0];
+        var prev = fg.style.height;
+        fg.style.height = '0px';
+        var overhead = cols[1].offsetHeight;
+        fg.style.height = prev;
+        var newsH = newsCol.offsetHeight;
+        if (newsH < 100) return;
+        var target = newsH - overhead;
+        if (target > 80) fg.style.height = target + 'px';
+    }
+    var _tries = 0;
+    function trySyncHeight() {
+        syncHeight();
+        _tries++;
+        if (_tries < 6) setTimeout(trySyncHeight, 300);
+    }
+    setTimeout(trySyncHeight, 200);
+    if (!window.parent._fgObserver) {
+        window.parent._fgObserver = new MutationObserver(function() {
+            var fg = p.getElementById('fg-container');
+            if (fg) syncHeight();
+        });
+        window.parent._fgObserver.observe(p.body, {childList: true, subtree: true, attributes: false});
+    }
+})();
+</script>
+""", height=0, width=0)
+
 # ── Anime Tab ─────────────────────────────────────────────────────────────────
 with tab_anime:
-    n = count_items(ANIME_NEWS_FILE)
-    section_header("ANIME", "Anime News", n or None)
-    render_news_cards(ANIME_NEWS_FILE, per_page=6, page_key="anime_news_page")
+    col_news, col_search = st.columns([2, 1], gap="large")
 
-    st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
-    st.markdown(
-        '<hr style="border:none;border-top:1px solid var(--border);margin:0 0 24px;">',
-        unsafe_allow_html=True
-    )
+    with col_news:
+        n = count_items(ANIME_NEWS_FILE)
+        section_header("ANIME", "Anime News", n or None)
+        render_news_cards(ANIME_NEWS_FILE, num_cols=2, per_page=4, page_key="anime_news_page")
 
-    section_header("SEARCH", "Browse by Genre")
+    with col_search:
+        section_header("SEARCH", "Browse by Genre")
 
-    genres = fetch_genres()
-    genre_names = ["— Select a genre —"] + [g["name"] for g in genres]
+        genres = fetch_genres()
+        genre_names = ["— Select a genre —"] + [g["name"] for g in genres]
 
-    sc1, sc2 = st.columns([3, 1])
-    with sc1:
-        selected_genre_name = st.selectbox(
-            "Genre", genre_names, key="genre_select", label_visibility="collapsed"
-        )
-    with sc2:
-        sort_option = st.selectbox(
-            "Sort", ["Score", "Popularity", "Members"],
-            key="genre_sort", label_visibility="collapsed"
-        )
+        sc1, sc2 = st.columns([3, 1])
+        with sc1:
+            selected_genre_name = st.selectbox(
+                "Genre", genre_names, key="genre_select", label_visibility="collapsed"
+            )
+        with sc2:
+            sort_option = st.selectbox(
+                "Sort", ["Score", "Popularity", "Members"],
+                key="genre_sort", label_visibility="collapsed"
+            )
 
-    sort_map = {"Score": "score", "Popularity": "popularity", "Members": "members"}
-    sort_by = sort_map.get(sort_option, "score")
+        sort_map = {"Score": "score", "Popularity": "popularity", "Members": "members"}
+        sort_by = sort_map.get(sort_option, "score")
 
-    if selected_genre_name != "— Select a genre —":
-        selected_genre = next((g for g in genres if g["name"] == selected_genre_name), None)
-        if selected_genre:
-            with st.spinner("Fetching anime…"):
-                results = fetch_anime_by_genre(selected_genre["mal_id"], sort_by)
-            if results:
-                for anime in results:
-                    st.markdown(render_anime_row(anime), unsafe_allow_html=True)
-            else:
-                st.info("No results found for this genre.")
-    else:
-        st.markdown(
-            '<div style="padding:40px 0;text-align:center;color:var(--text-3);'
-            'font-family:var(--font-mono);font-size:.792rem;letter-spacing:.1em;">'
-            'SELECT A GENRE TO BROWSE ANIME</div>',
-            unsafe_allow_html=True
-        )
+        if selected_genre_name != "— Select a genre —":
+            selected_genre = next((g for g in genres if g["name"] == selected_genre_name), None)
+            if selected_genre:
+                with st.spinner("Fetching anime…"):
+                    results = fetch_anime_by_genre(selected_genre["mal_id"], sort_by)
+                if results:
+                    rows_html = "".join(render_anime_row(a) for a in results)
+                    st.markdown(
+                        f'<div id="anime-container" style="display:flex;flex-direction:column;'
+                        f'gap:7px;height:800px;overflow-y:auto;padding-right:4px;">'
+                        f'{rows_html}</div>',
+                        unsafe_allow_html=True
+                    )
+                else:
+                    st.info("No results found for this genre.")
+        else:
+            st.markdown(
+                '<div style="padding:40px 0;text-align:center;color:var(--text-3);'
+                'font-family:var(--font-mono);font-size:.792rem;letter-spacing:.1em;">'
+                'SELECT A GENRE TO BROWSE ANIME</div>',
+                unsafe_allow_html=True
+            )
+
+    components.html("""
+<script>
+(function() {
+    var p = window.parent.document;
+    function syncAnimeHeight() {
+        var ac = p.getElementById('anime-container');
+        if (!ac) return;
+        var block = ac.closest('[data-testid="stHorizontalBlock"]');
+        if (!block) return;
+        var cols = block.querySelectorAll(':scope > [data-testid="stColumn"]');
+        if (cols.length < 2) return;
+        var newsCol = cols[0];
+        var prev = ac.style.height;
+        ac.style.height = '0px';
+        var overhead = cols[1].offsetHeight;
+        ac.style.height = prev;
+        var newsH = newsCol.offsetHeight;
+        if (newsH < 100) return;
+        var target = newsH - overhead;
+        if (target > 80) ac.style.height = target + 'px';
+    }
+    var _tries = 0;
+    function trySyncAnimeHeight() {
+        syncAnimeHeight();
+        _tries++;
+        if (_tries < 6) setTimeout(trySyncAnimeHeight, 300);
+    }
+    setTimeout(trySyncAnimeHeight, 200);
+    if (!window.parent._acObserver) {
+        window.parent._acObserver = new MutationObserver(function() {
+            var ac = p.getElementById('anime-container');
+            if (ac) syncAnimeHeight();
+        });
+        window.parent._acObserver.observe(p.body, {childList: true, subtree: true, attributes: false});
+    }
+})();
+</script>
+""", height=0, width=0)

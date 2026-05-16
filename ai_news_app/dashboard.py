@@ -873,7 +873,11 @@ with tab_games:
                 if st.session_state.free_games_page >= total_pages:
                     st.session_state.free_games_page = total_pages - 1
 
+                # Card area height: 2 rows × (420px card + 18px margin) = 876px
+                _GAMES_LIST_HEIGHT = 876
+
                 start = st.session_state.free_games_page * GAMES_PER_PAGE
+                rows_html = ""
                 for game in active_games[start:start + GAMES_PER_PAGE]:
                     platforms = game.get("platforms", "")
                     worth = game.get("worth", "Paid")
@@ -883,14 +887,19 @@ with tab_games:
                         f' &nbsp;·&nbsp; <span class="{cls}">Until {end_label}</span>'
                         if end_label else ""
                     )
-                    row_html = f"""<a href="{game['link']}" target="_blank" class="game-row">
+                    rows_html += f"""<a href="{game['link']}" target="_blank" class="game-row">
 <div class="game-row-thumb" style="width:88px;height:56px;background-size:contain;background-image:url('{game.get('thumbnail', '')}');"></div>
 <div class="game-row-body">
 <div style="margin-bottom:4px;"><span class="source-badge badge-free">{CHECK_ICON}FREE · was {worth}</span></div>
 <div class="game-row-title">{game['title']}</div>
 <div class="game-row-meta">{platforms}{expiry_html}</div>
 </div></a>"""
-                    st.markdown(row_html, unsafe_allow_html=True)
+
+                st.markdown(
+                    f'<div style="height:{_GAMES_LIST_HEIGHT}px;overflow-y:auto;'
+                    f'padding-right:4px;">{rows_html}</div>',
+                    unsafe_allow_html=True
+                )
 
                 if total_pages > 1:
                     st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)

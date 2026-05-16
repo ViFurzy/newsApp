@@ -900,12 +900,18 @@ with tab_games:
                 if st.session_state.free_games_page >= total_pages:
                     st.session_state.free_games_page = total_pages - 1
 
-                # Card area height: 2 rows × (420px card + 18px margin) = 876px
+                # Card area: 2 rows × (420px + 18px margin) = 876px
+                # Row gap: 7px × (n-1); each row gets flex:1 so all fill equally
                 _GAMES_LIST_HEIGHT = 876
+                _ROW_GAP = 7
 
                 start = st.session_state.free_games_page * GAMES_PER_PAGE
+                page_games = active_games[start:start + GAMES_PER_PAGE]
+                # Thumb height scales with row height so it fills the space nicely
+                thumb_h = max(56, (_GAMES_LIST_HEIGHT - _ROW_GAP * (len(page_games) - 1)) // len(page_games) - 24)
+
                 rows_html = ""
-                for game in active_games[start:start + GAMES_PER_PAGE]:
+                for game in page_games:
                     platforms = game.get("platforms", "")
                     worth = game.get("worth", "Paid")
                     end_label = format_end_date(game.get("end_date"))
@@ -914,17 +920,22 @@ with tab_games:
                         f' &nbsp;·&nbsp; <span class="{cls}">Until {end_label}</span>'
                         if end_label else ""
                     )
-                    rows_html += f"""<a href="{game['link']}" target="_blank" class="game-row">
-<div class="game-row-thumb" style="width:88px;height:56px;background-size:contain;background-image:url('{game.get('thumbnail', '')}');"></div>
-<div class="game-row-body">
-<div style="margin-bottom:4px;"><span class="source-badge badge-free">{CHECK_ICON}FREE · was {worth}</span></div>
-<div class="game-row-title">{game['title']}</div>
-<div class="game-row-meta">{platforms}{expiry_html}</div>
-</div></a>"""
+                    rows_html += (
+                        f'<a href="{game["link"]}" target="_blank" class="game-row" '
+                        f'style="flex:1;margin-bottom:0;">'
+                        f'<div class="game-row-thumb" style="width:88px;height:{thumb_h}px;'
+                        f'background-size:contain;background-image:url(\'{game.get("thumbnail","")}\');"></div>'
+                        f'<div class="game-row-body">'
+                        f'<div style="margin-bottom:4px;"><span class="source-badge badge-free">{CHECK_ICON}FREE · was {worth}</span></div>'
+                        f'<div class="game-row-title">{game["title"]}</div>'
+                        f'<div class="game-row-meta">{platforms}{expiry_html}</div>'
+                        f'</div></a>'
+                    )
 
                 st.markdown(
-                    f'<div style="height:{_GAMES_LIST_HEIGHT}px;overflow-y:auto;'
-                    f'padding-right:4px;">{rows_html}</div>',
+                    f'<div style="display:flex;flex-direction:column;gap:{_ROW_GAP}px;'
+                    f'height:{_GAMES_LIST_HEIGHT}px;overflow-y:auto;padding-right:4px;">'
+                    f'{rows_html}</div>',
                     unsafe_allow_html=True
                 )
 

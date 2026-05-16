@@ -513,6 +513,53 @@ components.html("""
 </script>
 """, height=0, width=0)
 
+# ── Tab persistence ───────────────────────────────────────────────────────────
+components.html("""
+<script>
+(function() {
+    var p = window.parent.document;
+    var TAB_KEYS = ['ai', 'gaming', 'anime'];
+    var LS_KEY = '_da_active_tab';
+
+    function getTabs() {
+        return p.querySelectorAll('[data-baseweb="tab"]');
+    }
+
+    function attachListeners() {
+        getTabs().forEach(function(tab, idx) {
+            if (tab._daTracked) return;
+            tab._daTracked = true;
+            tab.addEventListener('click', function() {
+                try { window.parent.localStorage.setItem(LS_KEY, TAB_KEYS[idx]); } catch(e) {}
+            });
+        });
+    }
+
+    function restoreTab() {
+        if (window.parent._daTabRestored) { attachListeners(); return; }
+        var tabs = getTabs();
+        if (!tabs.length) return;
+        window.parent._daTabRestored = true;
+        var saved;
+        try { saved = window.parent.localStorage.getItem(LS_KEY); } catch(e) {}
+        var idx = TAB_KEYS.indexOf(saved);
+        if (idx > 0 && tabs[idx]) { tabs[idx].click(); }
+        attachListeners();
+    }
+
+    setTimeout(restoreTab, 180);
+
+    if (!window.parent._daTabObserver) {
+        window.parent._daTabObserver = new MutationObserver(function() {
+            attachListeners();
+            if (!window.parent._daTabRestored) restoreTab();
+        });
+        window.parent._daTabObserver.observe(p.body, {childList: true, subtree: true});
+    }
+})();
+</script>
+""", height=0, width=0)
+
 # ── Session state ─────────────────────────────────────────────────────────────
 for _key in ("free_games_page", "ai_news_page", "games_news_page", "anime_news_page"):
     if _key not in st.session_state:

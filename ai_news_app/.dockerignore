@@ -13,3 +13,6 @@ gotify_data/
 .git/
 .gitignore
 .gitattributes
+*.md
+
+.claude/

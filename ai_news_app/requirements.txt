@@ -1,5 +1,5 @@
-feedparser
-schedule
-requests
-streamlit
-Pillow
+feedparser==6.0.12
+schedule==1.2.2
+requests==2.34.2
+streamlit==1.57.0
+Pillow==12.2.0

@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 FROM python:3.11-slim
 
 WORKDIR /app
@@ -5,23 +6,20 @@ WORKDIR /app
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     STREAMLIT_SERVER_HEADLESS=true \
-    STREAMLIT_BROWSER_GATHER_USAGE_STATS=false \
-    STREAMLIT_SERVER_ENABLE_CORS=false
+    STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --upgrade pip && \
+    pip install -r requirements.txt
 
 COPY main.py dashboard.py vNews_logo.ico start.sh ./
+COPY .streamlit/ .streamlit/
 
-# Strip Windows line endings so the script runs on Linux
-RUN sed -i 's/\r//' start.sh && chmod +x start.sh
-
-RUN mkdir -p /app/data
+RUN sed -i 's/\r//' start.sh && chmod +x start.sh && mkdir -p /app/data
 
 EXPOSE 8501
 

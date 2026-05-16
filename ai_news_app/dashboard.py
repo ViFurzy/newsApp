@@ -208,6 +208,8 @@ st.markdown("""
         flex-direction: column;
         position: relative;
         overflow: hidden;
+        will-change: transform;
+        contain: paint;
     }
     .news-card:hover {
         background: var(--surface-hover);
@@ -325,6 +327,7 @@ st.markdown("""
         cursor: pointer;
         transition: background .2s ease, border-color .2s ease, transform .2s ease;
         text-decoration: none !important;
+        will-change: transform;
     }
     .game-row:hover {
         background: var(--surface-hover);
@@ -445,6 +448,30 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
+
+# ── Preconnect hints ─────────────────────────────────────────────────────────
+components.html("""
+<script>
+(function() {
+    var head = window.parent.document.head;
+    var hints = [
+        {rel:'preconnect', href:'https://fonts.googleapis.com'},
+        {rel:'preconnect', href:'https://fonts.gstatic.com', co:true},
+        {rel:'dns-prefetch', href:'https://images.unsplash.com'},
+        {rel:'dns-prefetch', href:'https://flagcdn.com'},
+        {rel:'dns-prefetch', href:'https://api.jikan.moe'},
+        {rel:'dns-prefetch', href:'https://cdn.gamerpower.com'},
+    ];
+    hints.forEach(function(h) {
+        if (head.querySelector('link[href="'+h.href+'"]')) return;
+        var l = window.parent.document.createElement('link');
+        l.rel = h.rel; l.href = h.href;
+        if (h.co) l.crossOrigin = '';
+        head.appendChild(l);
+    });
+})();
+</script>
+""", height=0, width=0)
 
 # ── Theme toggle ──────────────────────────────────────────────────────────────
 components.html("""

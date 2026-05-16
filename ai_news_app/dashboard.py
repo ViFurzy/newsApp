@@ -41,7 +41,7 @@ STAR_ICON = '<svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"
 # ── CSS ──────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
     header[data-testid="stHeader"],
     div[data-testid="stToolbar"],
@@ -74,9 +74,9 @@ st.markdown("""
         --green-border:    rgba(90, 158, 111, 0.24);
         --r-card:          4px;
         --r-sm:            3px;
-        --font-display:    'Playfair Display', Georgia, serif;
+        --font-display:    'Inter', system-ui, sans-serif;
         --font-body:       'Inter', system-ui, sans-serif;
-        --font-mono:       'IBM Plex Mono', monospace;
+        --font-mono:       'Inter', system-ui, sans-serif;
     }
     [data-theme="light"] {
         --bg:              #f4efe7;

@@ -13,6 +13,7 @@ DATA_DIR = "/app/data"
 AI_NEWS_FILE = os.path.join(DATA_DIR, "news.json")
 GAMES_NEWS_FILE = os.path.join(DATA_DIR, "games_news.json")
 FREE_GAMES_FILE = os.path.join(DATA_DIR, "free_games.json")
+ANIME_NEWS_FILE = os.path.join(DATA_DIR, "anime_news.json")
 
 AI_FEEDS = {
     "🇺🇸 TechCrunch AI": "https://techcrunch.com/category/artificial-intelligence/feed/",
@@ -28,6 +29,14 @@ GAMES_FEEDS = {
     "🇺🇸 GameRant": "https://gamerant.com/feed/",
     "🇵🇱 GRY-Online": "https://www.gry-online.pl/rss/news.xml",
     "🇵🇱 IGN Polska": "https://pl.ign.com/feed.xml"
+}
+
+ANIME_FEEDS = {
+    "🌍 Anime News Network": "https://www.animenewsnetwork.com/newsroom/rss.xml",
+    "🌍 Anime Corner": "https://animecorner.me/feed/",
+    "🇬🇧 Anime UK News": "https://animeuknews.net/feed/",
+    "🌍 Otaku USA": "https://otakuusamagazine.com/feed/",
+    "🌍 ComicBook Anime": "https://comicbook.com/anime/rss/"
 }
 
 
@@ -76,7 +85,10 @@ def fetch_rss_feeds(feeds_dict, output_file):
 
 def fetch_free_games():
     try:
-        response = requests.get("https://www.gamerpower.com/api/giveaways?platform=pc")
+        response = requests.get(
+            "https://www.gamerpower.com/api/giveaways?platform=pc",
+            timeout=10
+        )
         response.raise_for_status()
         data = response.json()
 
@@ -114,14 +126,19 @@ def fetch_all_data():
     ai_count = fetch_rss_feeds(AI_FEEDS, AI_NEWS_FILE)
     games_count = fetch_rss_feeds(GAMES_FEEDS, GAMES_NEWS_FILE)
     free_games_count = fetch_free_games()
+    anime_count = fetch_rss_feeds(ANIME_FEEDS, ANIME_NEWS_FILE)
 
-    print(f"[{datetime.now()}] Done. AI ({ai_count}), GamesNews ({games_count}), FreeGames ({free_games_count}).")
+    print(
+        f"[{datetime.now()}] Done. "
+        f"AI ({ai_count}), Games ({games_count}), "
+        f"FreeGames ({free_games_count}), Anime ({anime_count})."
+    )
 
 
 if __name__ == "__main__":
     for t in SCHEDULE_TIMES:
         schedule.every().day.at(t).do(fetch_all_data)
-    print(f"[{datetime.now()}] Daily Aggregator started. Scheduled at: {', '.join(SCHEDULE_TIMES)}.")
+    print(f"[{datetime.now()}] Aggregator started. Scheduled: {', '.join(SCHEDULE_TIMES)}.")
     fetch_all_data()
     while True:
         schedule.run_pending()

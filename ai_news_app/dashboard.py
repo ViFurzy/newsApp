@@ -60,16 +60,16 @@ div[data-testid="stToolbar"],
 
 /* ── Design tokens ──────────────────────────────────────── */
 :root {
-    --bg:              #09090b;
-    --bg-raised:       #0e0e11;
-    --surface:         rgba(255,255,255,0.038);
-    --surface-2:       rgba(255,255,255,0.065);
-    --surface-hover:   rgba(255,255,255,0.075);
-    --border:          rgba(255,255,255,0.080);
-    --border-2:        rgba(255,255,255,0.175);
-    --text-1:          #f0ece7;
-    --text-2:          #89857f;
-    --text-3:          #52504c;
+    --bg:              #141418;
+    --bg-raised:       #1a1a20;
+    --surface:         rgba(255,255,255,0.068);
+    --surface-2:       rgba(255,255,255,0.105);
+    --surface-hover:   rgba(255,255,255,0.130);
+    --border:          rgba(255,255,255,0.120);
+    --border-2:        rgba(255,255,255,0.220);
+    --text-1:          #f4f0ec;
+    --text-2:          #a09890;
+    --text-3:          #706860;
     --accent:          #c87038;
     --accent-dim:      rgba(200,112,56,0.12);
     --accent-glow:     rgba(200,112,56,0.20);

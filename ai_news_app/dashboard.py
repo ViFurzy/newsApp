@@ -24,7 +24,7 @@ FLAG_MAP = {
     "🌍": "",
 }
 
-DATA_DIR = "/app/data"
+DATA_DIR = os.environ.get("DATA_DIR", "/app/data")
 AI_NEWS_FILE    = os.path.join(DATA_DIR, "news.json")
 GAMES_NEWS_FILE = os.path.join(DATA_DIR, "games_news.json")
 FREE_GAMES_FILE = os.path.join(DATA_DIR, "free_games.json")
@@ -98,7 +98,7 @@ div[data-testid="stToolbar"],
 }
 [data-theme="light"] {
     --bg:              #f3ede5;
-    --bg-raised:       #ebe5dc;
+    --bg-raised:       #f3ede5;
     --surface:         rgba(0,0,0,0.030);
     --surface-2:       rgba(0,0,0,0.055);
     --surface-hover:   rgba(0,0,0,0.070);
@@ -145,10 +145,10 @@ div[data-testid="stAppViewContainer"], .main {
 div[data-testid="stAppViewContainer"]::before {
     content: '';
     position: fixed;
-    inset: 0;
+    inset: 1;
     pointer-events: none;
     z-index: 0;
-    opacity: 0.022;
+    opacity: 0.15;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
     background-size: 200px 200px;
 }
@@ -156,21 +156,21 @@ div[data-testid="stAppViewContainer"]::before {
 /* ── Scrollbar ──────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,.10); border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.20); }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,.28); border-radius: 14px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.42); }
 
 /* ── Masthead ───────────────────────────────────────────── */
 .masthead {
-    padding: 1.8rem 0 1.2rem;
+    padding: 1rem 0 1.4rem;
     border-bottom: 1px solid var(--border);
-    margin-bottom: 0;
+    margin-bottom: 1px solid var(--border);
     animation: fade-up .65s var(--ease-expo) both;
 }
 .masthead-top {
     display: flex;
     align-items: baseline;
-    gap: 16px;
-    margin-bottom: .55rem;
+    gap: 12px;
+    margin-bottom: 1rem;
 }
 .masthead-brand {
     font-family: var(--font-serif);
@@ -192,9 +192,9 @@ div[data-testid="stAppViewContainer"]::before {
 }
 .masthead-count {
     font-family: var(--font-mono);
-    font-size: .68rem;
+    font-size: .7rem;
     color: var(--text-2);
-    letter-spacing: .02em;
+    letter-spacing: .05em;
 }
 .masthead-count strong {
     color: var(--text-1);
@@ -205,7 +205,7 @@ div[data-testid="stAppViewContainer"]::before {
     align-items: center;
     gap: 8px;
     font-family: var(--font-mono);
-    font-size: .595rem;
+    font-size: .8rem;
     color: var(--text-3);
     letter-spacing: .05em;
     text-transform: uppercase;
@@ -244,11 +244,12 @@ div[data-testid="stAppViewContainer"]::before {
 /* ── News ticker ────────────────────────────────────────── */
 .ticker-wrap {
     overflow: hidden;
-    height: 36px;
+    height: 55px;
     display: flex;
     align-items: center;
-    border-bottom: 1px solid var(--border);
-    margin: 0 -2.2rem 1.8rem;
+    border-bottom: 1px;
+    border-top: 1px;
+    margin: 0 -2rem 1rem;
     position: relative;
     background: var(--surface);
 }
@@ -257,7 +258,7 @@ div[data-testid="stAppViewContainer"]::before {
     content: '';
     position: absolute;
     top: 0; bottom: 0;
-    width: 100px;
+    width: 200px;
     z-index: 3;
     pointer-events: none;
 }
@@ -277,7 +278,7 @@ div[data-testid="stAppViewContainer"]::before {
     align-items: center;
     gap: 6px;
     background: var(--bg-raised);
-    border-right: 1px solid var(--border-2);
+    border-right: 1px;
     font-family: var(--font-mono);
     font-size: .570rem;
     font-weight: 600;
@@ -307,9 +308,9 @@ div[data-testid="stAppViewContainer"]::before {
 .t-item {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
-    padding: 0 22px;
-    font-size: .726rem;
+    gap: 15px;
+    padding: 0 15px;
+    font-size: .720rem;
     color: var(--text-2);
     text-decoration: none !important;
     transition: color .15s;
@@ -318,9 +319,9 @@ div[data-testid="stAppViewContainer"]::before {
 .t-item:hover { color: var(--text-1); }
 .t-cat {
     font-family: var(--font-mono);
-    font-size: .555rem;
-    font-weight: 600;
-    letter-spacing: .12em;
+    font-size: .720rem;
+    font-weight: 700;
+    letter-spacing: .15rem;
     text-transform: uppercase;
     flex-shrink: 0;
 }
@@ -376,8 +377,8 @@ div[data-testid="stAppViewContainer"]::before {
     flex-direction: column;
     gap: 4px;
     margin: 0 0 18px;
-    padding-bottom: 14px;
-    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+    border-bottom: 1px;
 }
 .section-hdr-top {
     display: flex;
@@ -436,7 +437,7 @@ div[data-testid="stAppViewContainer"]::before {
     -webkit-backdrop-filter: var(--blur);
     backdrop-filter: var(--blur);
     border: 1px solid var(--border);
-    border-top: 2px solid var(--border);
+    border-top: 1px solid var(--border);
     border-radius: var(--r-card);
     color: var(--text-1);
     display: flex;
@@ -636,7 +637,7 @@ a { text-decoration: none !important; }
     background: var(--surface);
     -webkit-backdrop-filter: var(--blur);
     backdrop-filter: var(--blur);
-    border: 1px solid var(--border);
+    border: 1px;
     border-left: 2px solid transparent;
     border-radius: var(--r-sm);
     padding: 10px 14px 10px 11px;

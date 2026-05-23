@@ -43,7 +43,7 @@ BOOK_ICON  = '<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="
 # ─────────────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..900;1,14..32,300..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:ital,opsz,wght@0,14..32,300..900;1,14..32,300..900&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
 header[data-testid="stHeader"],
 div[data-testid="stToolbar"],
@@ -90,7 +90,11 @@ div[data-testid="stToolbar"],
     --r-sm:            5px;
     --r-xs:            3px;
     --font:            'Inter', system-ui, sans-serif;
-    --blur:            blur(18px) saturate(160%);
+    --font-serif:      'Playfair Display', Georgia, serif;
+    --font-sans:       'Inter', system-ui, sans-serif;
+    --font-mono:       'IBM Plex Mono', 'Courier New', monospace;
+    --blur:            blur(20px) saturate(160%);
+    --ease-expo:       cubic-bezier(0.16, 1, 0.3, 1);
 }
 [data-theme="light"] {
     --bg:              #f3ede5;
@@ -124,11 +128,17 @@ div[data-testid="stToolbar"],
 /* ── Base ───────────────────────────────────────────────── */
 html, body, [class*="css"], .stApp {
     font-family: var(--font) !important;
+}
+/* Body carries the solid base so fixed image overlays sit below .stApp */
+html, body {
     background-color: var(--bg) !important;
 }
+/* Make the app shell transparent so body-level image overlays show through */
+.stApp {
+    background-color: transparent !important;
+}
 div[data-testid="stAppViewContainer"], .main {
-    background-color: var(--bg) !important;
-    transition: background-color 0.3s ease;
+    background-color: transparent !important;
 }
 
 /* ── Grain texture ──────────────────────────────────────── */
@@ -149,54 +159,71 @@ div[data-testid="stAppViewContainer"]::before {
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.10); border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.20); }
 
-/* ── Stats header bar ───────────────────────────────────── */
-.dash-header {
-    display: flex;
-    align-items: center;
-    padding: 1.6rem 0 0;
-    gap: 0;
-    margin-bottom: 0;
+/* ── Masthead ───────────────────────────────────────────── */
+.masthead {
+    padding: 1.8rem 0 1.2rem;
     border-bottom: 1px solid var(--border);
-    padding-bottom: 1rem;
+    margin-bottom: 0;
+    animation: fade-up .65s var(--ease-expo) both;
 }
-.dash-brand {
-    font-size: 1.08rem;
+.masthead-top {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: .55rem;
+}
+.masthead-brand {
+    font-family: var(--font-serif);
+    font-size: 2.5rem;
     font-weight: 900;
-    letter-spacing: -.03em;
+    letter-spacing: -.045em;
     color: var(--text-1);
-    margin-right: auto;
     line-height: 1;
+    margin-right: auto;
 }
-.dash-brand em {
-    font-style: normal;
+.masthead-brand em {
+    font-style: italic;
     color: var(--accent);
 }
-.dash-stat {
+.masthead-live {
     display: flex;
     align-items: center;
-    gap: 5px;
-    padding: 4px 14px;
-    border-left: 1px solid var(--border);
-    font-size: .638rem;
-    color: var(--text-3);
-    font-weight: 500;
-    letter-spacing: .04em;
-    white-space: nowrap;
+    gap: 10px;
 }
-.dash-stat strong {
+.masthead-count {
+    font-family: var(--font-mono);
+    font-size: .68rem;
+    color: var(--text-2);
+    letter-spacing: .02em;
+}
+.masthead-count strong {
     color: var(--text-1);
-    font-weight: 700;
+    font-weight: 600;
 }
+.masthead-sub {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: .595rem;
+    color: var(--text-3);
+    letter-spacing: .05em;
+    text-transform: uppercase;
+}
+.masthead-sub strong { color: var(--text-2); font-weight: 600; }
+.masthead-sep { opacity: .35; }
+.masthead-date { letter-spacing: .07em; }
 .live-badge {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    padding: 3px 9px;
+    padding: 3px 10px;
     border-radius: 20px;
     background: var(--live-bg);
     border: 1px solid var(--live-border);
-    font-size: .594rem;
-    font-weight: 800;
+    font-family: var(--font-mono);
+    font-size: .565rem;
+    font-weight: 600;
     letter-spacing: .12em;
     color: var(--live);
     text-transform: uppercase;
@@ -244,16 +271,17 @@ div[data-testid="stAppViewContainer"]::before {
 }
 .ticker-label {
     flex-shrink: 0;
-    padding: 0 14px;
+    padding: 0 16px;
     height: 100%;
     display: flex;
     align-items: center;
     gap: 6px;
     background: var(--bg-raised);
     border-right: 1px solid var(--border-2);
-    font-size: .594rem;
-    font-weight: 800;
-    letter-spacing: .14em;
+    font-family: var(--font-mono);
+    font-size: .570rem;
+    font-weight: 600;
+    letter-spacing: .16em;
     color: var(--accent);
     text-transform: uppercase;
     z-index: 4;
@@ -289,9 +317,10 @@ div[data-testid="stAppViewContainer"]::before {
 }
 .t-item:hover { color: var(--text-1); }
 .t-cat {
-    font-size: .580rem;
-    font-weight: 800;
-    letter-spacing: .1em;
+    font-family: var(--font-mono);
+    font-size: .555rem;
+    font-weight: 600;
+    letter-spacing: .12em;
     text-transform: uppercase;
     flex-shrink: 0;
 }
@@ -344,42 +373,52 @@ div[data-testid="stAppViewContainer"]::before {
 /* ── Section header ─────────────────────────────────────── */
 .section-hdr {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 0 0 16px;
-    padding-bottom: 12px;
+    flex-direction: column;
+    gap: 4px;
+    margin: 0 0 18px;
+    padding-bottom: 14px;
     border-bottom: 1px solid var(--border);
 }
+.section-hdr-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
 .section-hdr-cat {
-    font-size: .616rem;
-    font-weight: 800;
+    font-family: var(--font-mono);
+    font-size: .595rem;
+    font-weight: 600;
     color: var(--accent);
     letter-spacing: .16em;
     text-transform: uppercase;
     flex-shrink: 0;
 }
 .section-hdr h2 {
-    font-size: 1.18rem;
-    font-weight: 800;
+    font-family: var(--font-serif);
+    font-size: 1.30rem;
+    font-weight: 700;
     color: var(--text-1);
     margin: 0;
-    letter-spacing: -.025em;
+    letter-spacing: -.02em;
+    line-height: 1.2;
 }
 .section-pill {
-    margin-left: auto;
-    font-size: .594rem;
-    font-weight: 600;
+    font-family: var(--font-mono);
+    font-size: .560rem;
+    font-weight: 500;
     color: var(--text-3);
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 20px;
     padding: 2px 9px;
-    letter-spacing: .06em;
+    letter-spacing: .05em;
+    margin-left: auto;
 }
 .section-updated {
-    font-size: .616rem;
+    font-family: var(--font-mono);
+    font-size: .560rem;
     color: var(--text-3);
-    margin-left: 6px;
+    letter-spacing: .03em;
 }
 
 /* ── Bento grid ─────────────────────────────────────────── */
@@ -397,19 +436,28 @@ div[data-testid="stAppViewContainer"]::before {
     -webkit-backdrop-filter: var(--blur);
     backdrop-filter: var(--blur);
     border: 1px solid var(--border);
+    border-top: 2px solid var(--border);
     border-radius: var(--r-card);
     color: var(--text-1);
     display: flex;
     flex-direction: column;
     position: relative;
     overflow: hidden;
-    will-change: transform;
-    transition: background .22s, border-color .22s, transform .22s, box-shadow .22s;
-    animation: nc-in .38s ease both;
+    will-change: transform, opacity;
+    transition: background .25s, border-color .25s, transform .32s var(--ease-expo), box-shadow .32s;
+    animation: fade-up .55s var(--ease-expo) both;
 }
 @keyframes nc-in {
     from { opacity: 0; transform: translateY(14px); }
     to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-right {
+    from { opacity: 0; transform: translateX(-14px); }
+    to   { opacity: 1; transform: translateX(0); }
 }
 .nc:nth-child(1) { animation-delay:   0ms; }
 .nc:nth-child(2) { animation-delay:  50ms; }
@@ -419,22 +467,25 @@ div[data-testid="stAppViewContainer"]::before {
 .nc:nth-child(6) { animation-delay: 250ms; }
 .nc:hover {
     background: var(--surface-hover);
+    border-top-color: var(--accent);
     border-color: var(--border-2);
     transform: translateY(-3px);
-    box-shadow: 0 14px 44px rgba(0,0,0,.50), 0 0 0 1px var(--border-2);
+    box-shadow: 0 20px 56px rgba(0,0,0,.52);
 }
 .nc-link { position: absolute; inset: 0; z-index: 10; cursor: pointer; }
 
 .nc-img {
     width: 100%;
-    height: 158px;
+    height: 164px;
     flex-shrink: 0;
     background-size: cover;
     background-position: center;
     position: relative;
     overflow: hidden;
-    transition: height .22s;
+    transition: transform .38s var(--ease-expo);
+    transform-origin: center;
 }
+.nc:hover .nc-img { transform: scale(1.04); }
 .nc-img::after {
     content: '';
     position: absolute;
@@ -468,16 +519,16 @@ div[data-testid="stAppViewContainer"]::before {
 .src-badge {
     display: inline-flex;
     align-items: center;
-    background: var(--badge-bg);
+    background: transparent;
     color: var(--badge-text);
-    padding: 2px 7px;
-    border-radius: var(--r-xs);
-    font-size: .594rem;
-    font-weight: 800;
+    padding: 2px 0;
+    font-family: var(--font-mono);
+    font-size: .560rem;
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: .10em;
-    border: 1px solid var(--badge-border);
     flex-shrink: 0;
+    opacity: .80;
 }
 .badge-new {
     display: inline-flex;
@@ -485,17 +536,18 @@ div[data-testid="stAppViewContainer"]::before {
     background: var(--blue-bg);
     color: var(--blue);
     border: 1px solid var(--blue-border);
-    padding: 2px 6px;
+    padding: 1px 6px;
     border-radius: var(--r-xs);
-    font-size: .558rem;
-    font-weight: 800;
+    font-family: var(--font-mono);
+    font-size: .540rem;
+    font-weight: 500;
     letter-spacing: .10em;
     text-transform: uppercase;
     animation: badge-blink 3s ease-in-out infinite;
 }
 @keyframes badge-blink {
     0%,100% { opacity: 1; }
-    50%      { opacity: .65; }
+    50%      { opacity: .55; }
 }
 .badge-top {
     display: inline-flex;
@@ -503,10 +555,11 @@ div[data-testid="stAppViewContainer"]::before {
     background: var(--accent-dim);
     color: var(--accent);
     border: 1px solid var(--badge-border);
-    padding: 2px 6px;
+    padding: 1px 6px;
     border-radius: var(--r-xs);
-    font-size: .558rem;
-    font-weight: 800;
+    font-family: var(--font-mono);
+    font-size: .540rem;
+    font-weight: 500;
     letter-spacing: .10em;
     text-transform: uppercase;
 }
@@ -516,25 +569,29 @@ div[data-testid="stAppViewContainer"]::before {
     background: var(--green-bg);
     color: var(--green);
     border: 1px solid var(--green-border);
-    padding: 2px 7px;
+    padding: 1px 7px;
     border-radius: var(--r-xs);
-    font-size: .580rem;
-    font-weight: 800;
+    font-family: var(--font-mono);
+    font-size: .555rem;
+    font-weight: 500;
     letter-spacing: .08em;
 }
 .nc-time {
-    font-size: .616rem;
+    font-family: var(--font-mono);
+    font-size: .580rem;
     color: var(--text-3);
     margin-left: auto;
     white-space: nowrap;
+    letter-spacing: .02em;
 }
 .nc-title {
+    font-family: var(--font-serif);
     color: var(--text-1);
-    font-size: .95rem;
+    font-size: 1.06rem;
     font-weight: 700;
-    line-height: 1.46;
-    margin-bottom: 8px;
-    letter-spacing: -.012em;
+    line-height: 1.42;
+    margin-bottom: 9px;
+    letter-spacing: -.01em;
     transition: color .18s;
     display: -webkit-box;
     -webkit-line-clamp: 3;
@@ -556,11 +613,13 @@ div[data-testid="stAppViewContainer"]::before {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-top: 12px;
-    padding-top: 10px;
+    margin-top: 13px;
+    padding-top: 11px;
     border-top: 1px solid var(--border);
-    font-size: .616rem;
+    font-family: var(--font-mono);
+    font-size: .575rem;
     color: var(--text-3);
+    letter-spacing: .02em;
 }
 .nc-footer-item {
     display: inline-flex;
@@ -578,16 +637,16 @@ a { text-decoration: none !important; }
     -webkit-backdrop-filter: var(--blur);
     backdrop-filter: var(--blur);
     border: 1px solid var(--border);
-    border-left: 3px solid transparent;
+    border-left: 2px solid transparent;
     border-radius: var(--r-sm);
-    padding: 10px 13px 10px 10px;
-    margin-bottom: 7px;
+    padding: 10px 14px 10px 11px;
+    margin-bottom: 6px;
     position: relative;
     cursor: pointer;
-    transition: background .2s, border-color .2s, transform .2s, box-shadow .2s;
+    transition: background .22s, border-color .22s, transform .30s var(--ease-expo), box-shadow .30s;
     text-decoration: none !important;
-    will-change: transform;
-    animation: nc-in .35s ease both;
+    will-change: transform, opacity;
+    animation: fade-right .48s var(--ease-expo) both;
 }
 .gr:nth-child(1) { animation-delay:   0ms; }
 .gr:nth-child(2) { animation-delay:  40ms; }
@@ -627,12 +686,14 @@ a { text-decoration: none !important; }
 }
 .gr:hover .gr-title { color: var(--accent); }
 .gr-meta {
-    font-size: .616rem;
+    font-family: var(--font-mono);
+    font-size: .580rem;
     color: var(--text-3);
     display: flex;
     align-items: center;
     gap: 6px;
     flex-wrap: wrap;
+    letter-spacing: .02em;
 }
 .gr-price-was {
     text-decoration: line-through;
@@ -671,8 +732,9 @@ a { text-decoration: none !important; }
     height: 36px;
     width: 100%;
     color: var(--text-2);
-    font-weight: 600;
-    font-size: .726rem;
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: .690rem;
     letter-spacing: .08em;
     white-space: nowrap;
 }
@@ -756,14 +818,23 @@ div[data-baseweb="select"] { background: var(--surface) !important; }
     gap: 12px;
     background: var(--surface);
     border: 1px solid var(--border);
-    border-left: 3px solid transparent;
+    border-left: 2px solid transparent;
     border-radius: var(--r-sm);
-    padding: 10px 13px;
-    margin-bottom: 7px;
-    animation: nc-in .35s ease both;
+    padding: 10px 14px;
+    margin-bottom: 6px;
+    animation: fade-right .48s var(--ease-expo) both;
 }
 .skel-thumb { flex-shrink: 0; border-radius: var(--r-xs); }
 .skel-row-body { flex-grow: 1; }
+
+/* ── Reduced motion ─────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: .01ms !important;
+        transition-duration: .01ms !important;
+    }
+    .ticker-track { animation: none !important; }
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -907,6 +978,85 @@ components.html("""
             if(!window.parent._daTabRestored)restoreTab();
         });
         window.parent._daTabObs.observe(p.body,{childList:true,subtree:true});
+    }
+})();
+</script>
+""", height=0, width=0)
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  JS: tab-themed background images (fixed overlays that cross-fade)
+# ─────────────────────────────────────────────────────────────────────────────
+components.html("""
+<script>
+(function(){
+    var p=window.parent.document;
+
+    // One background image per tab — cropped wide, loaded at reduced quality
+    var IMGS=[
+        'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=1920&q=50', // AI
+        'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1920&q=50',    // Gaming
+        'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=1920&q=50'  // Anime
+    ];
+    // Subtle tint per tab applied on top of the dimmed image
+    var TINTS=[
+        'rgba(91,156,246,0.040)',   // blue
+        'rgba(34,197,94,0.032)',    // green
+        'rgba(167,139,250,0.040)'  // violet
+    ];
+
+    // Returns the overlay color that dims the image to match the current theme
+    function ov(){
+        return p.documentElement.getAttribute('data-theme')==='light'
+            ? 'rgba(243,237,229,0.90)'
+            : 'rgba(17,17,19,0.91)';
+    }
+
+    // Lazy-create the 3 fixed overlay divs once, insert before everything in body
+    function setup(){
+        if(p.getElementById('da-bg-0'))return;
+        IMGS.forEach(function(img,i){
+            var el=p.createElement('div');
+            el.id='da-bg-'+i;
+            el.style.cssText=
+                'position:fixed;inset:0;pointer-events:none;z-index:0;'+
+                'background-size:cover;background-position:center center;'+
+                'opacity:0;transition:opacity 1.1s ease;';
+            p.body.insertBefore(el,p.body.firstChild);
+        });
+    }
+
+    // Re-paint background layers (called on theme change too)
+    function paint(idx){
+        var o=ov();
+        IMGS.forEach(function(img,i){
+            var el=p.getElementById('da-bg-'+i);
+            if(!el)return;
+            el.style.backgroundImage=
+                'linear-gradient('+o+','+o+'),'+           // dim overlay
+                'radial-gradient(ellipse 110% 60% at 50% -8%,'+TINTS[i]+' 0%,transparent 65%),'+  // tint
+                'url('+img+')';                            // photo
+            el.style.opacity=(i===idx)?'1':'0';
+        });
+    }
+
+    function detect(){
+        var tabs=p.querySelectorAll('[data-baseweb="tab"]');
+        for(var i=0;i<tabs.length;i++){
+            if(tabs[i].getAttribute('aria-selected')==='true'){setup();paint(i);return;}
+        }
+        setup();paint(0);
+    }
+
+    detect();
+    if(!window.parent._tabColorObs){
+        window.parent._tabColorObs=new MutationObserver(function(muts){
+            for(var m=0;m<muts.length;m++){
+                var a=muts[m].attributeName;
+                if(a==='aria-selected'||a==='data-theme'){detect();return;}
+            }
+        });
+        window.parent._tabColorObs.observe(p.body,{attributeFilter:['aria-selected'],subtree:true});
+        window.parent._tabColorObs.observe(p.documentElement,{attributeFilter:['data-theme']});
     }
 })();
 </script>
@@ -1102,14 +1252,67 @@ def get_file_age_str(filepath):
     return f"{int(secs/86400)}d ago"
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+#  Content filtering
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Title-level gaming signals — strong indicators the piece is game news/review
+_GAMING_TITLE_TERMS = frozenset([
+    "xbox", "playstation", "ps5", "ps4", "nintendo", "switch lite",
+    "steam", "gameplay", "game review", "dlc", "patch notes",
+    "battle royale", "early access", "game of the year", "game pass",
+    "fortnite", "minecraft", "call of duty", "grand theft auto",
+    "league of legends", "counter-strike", "valorant", "overwatch",
+    "apex legends", "elden ring", "baldur's gate", "diablo",
+    "world of warcraft", "final fantasy xvi", "street fighter",
+    "esports tournament", "gaming chair", "gaming headset",
+])
+
+# Body-level AI/tech signals — presence means keep in AI tab even if gaming terms appear
+_AI_TECH_TERMS = frozenset([
+    " ai ", "artificial intelligence", "machine learning", "llm", "gpt",
+    "chatgpt", "openai", "anthropic", "deepmind", "neural network",
+    " nlp ", "language model", "generative ai", "diffusion model",
+    "tech ", "technology", "software", "hardware", "processor", "chip",
+    "robotics", "algorithm", "data science", "startup", "cloud computing",
+    "cybersecurity", "programming", "quantum", "automation",
+])
+
+
+def _item_text(item):
+    return " " + (item.get("title", "") + " " + item.get("summary", "")).lower() + " "
+
+
+def _is_gaming_title(item):
+    t = " " + item.get("title", "").lower() + " "
+    return any(term in t for term in _GAMING_TITLE_TERMS)
+
+
+def _has_ai_signal(item):
+    return any(term in _item_text(item) for term in _AI_TECH_TERMS)
+
+
+def filter_for_ai_tab(items):
+    """Drop articles that are pure gaming with no AI/tech angle."""
+    return [it for it in items if not (_is_gaming_title(it) and not _has_ai_signal(it))]
+
+
+def filter_for_anime_tab(items):
+    """Drop articles that are gaming content (anime-based games belong in Gaming tab)."""
+    return [it for it in items if not _is_gaming_title(it)]
+
+
 def section_header(cat, title, count=None, updated=None):
     pill  = f'<span class="section-pill">{count}</span>' if count else ""
     upd   = f'<span class="section-updated">· {updated}</span>' if updated else ""
     st.markdown(
         f'<div class="section-hdr">'
+        f'<div class="section-hdr-top">'
         f'<span class="section-hdr-cat">{cat}</span>'
+        f'{upd}{pill}'
+        f'</div>'
         f'<h2>{title}</h2>'
-        f'{upd}{pill}</div>',
+        f'</div>',
         unsafe_allow_html=True,
     )
 
@@ -1189,7 +1392,7 @@ def load_sorted_items(json_file_path):
     return items
 
 
-def render_news_cards(json_file_path, num_cols=3, per_page=None, page_key=None):
+def render_news_cards(json_file_path, num_cols=3, per_page=None, page_key=None, filter_fn=None):
     placeholder = st.empty()
     placeholder.markdown(build_news_skeleton(num_cols, per_page or 6), unsafe_allow_html=True)
 
@@ -1197,6 +1400,8 @@ def render_news_cards(json_file_path, num_cols=3, per_page=None, page_key=None):
     if items is None:
         placeholder.warning("Data not yet available — waiting for the first fetch.")
         return
+    if filter_fn and items:
+        items = filter_fn(items)
     if not items:
         placeholder.markdown('<div class="empty-state">No articles available yet</div>', unsafe_allow_html=True)
         return
@@ -1294,18 +1499,28 @@ def render_dashboard_header():
     anime_n  = count_items(ANIME_NEWS_FILE)
     total    = ai_n + games_n + anime_n
     updated  = get_file_age_str(AI_NEWS_FILE)
+    now_str  = datetime.now().strftime("%a, %d %b %Y").upper()
 
     header_html = f"""
-<div class="dash-header">
-  <div class="dash-brand">Daily<em>Agg</em></div>
-  <div class="dash-stat">
-    <span class="live-badge"><span class="live-dot"></span>LIVE</span>
+<div class="masthead">
+  <div class="masthead-top">
+    <div class="masthead-brand">Daily<em>Agg</em></div>
+    <div class="masthead-live">
+      <span class="live-badge"><span class="live-dot"></span>LIVE</span>
+      <span class="masthead-count"><strong>{total}</strong>&nbsp;articles</span>
+    </div>
   </div>
-  <div class="dash-stat"><strong>{total}</strong>&nbsp;articles</div>
-  <div class="dash-stat">AI&nbsp;<strong>{ai_n}</strong></div>
-  <div class="dash-stat">Gaming&nbsp;<strong>{games_n}</strong></div>
-  <div class="dash-stat">Anime&nbsp;<strong>{anime_n}</strong></div>
-  <div class="dash-stat">Updated&nbsp;<strong>{updated}</strong></div>
+  <div class="masthead-sub">
+    <span class="masthead-date">{now_str}</span>
+    <span class="masthead-sep">·</span>
+    <span>AI&nbsp;<strong>{ai_n}</strong></span>
+    <span class="masthead-sep">·</span>
+    <span>Gaming&nbsp;<strong>{games_n}</strong></span>
+    <span class="masthead-sep">·</span>
+    <span>Anime&nbsp;<strong>{anime_n}</strong></span>
+    <span class="masthead-sep">·</span>
+    <span>Updated&nbsp;<strong>{updated}</strong></span>
+  </div>
 </div>
 """
     st.markdown(header_html + build_ticker_html(), unsafe_allow_html=True)
@@ -1381,7 +1596,7 @@ with tab_ai:
     updated = get_file_age_str(AI_NEWS_FILE)
     section_header("AI / TECH", "Artificial Intelligence & Technology",
                    count=n or None, updated=updated if n else None)
-    render_news_cards(AI_NEWS_FILE, num_cols=3, per_page=6, page_key="ai_news_page")
+    render_news_cards(AI_NEWS_FILE, num_cols=3, per_page=6, page_key="ai_news_page", filter_fn=filter_for_ai_tab)
 
 # ── Gaming Tab ────────────────────────────────────────────────────────────────
 with tab_games:
@@ -1523,7 +1738,7 @@ with tab_anime:
         n       = count_items(ANIME_NEWS_FILE)
         updated = get_file_age_str(ANIME_NEWS_FILE)
         section_header("ANIME", "Anime News", count=n or None, updated=updated if n else None)
-        render_news_cards(ANIME_NEWS_FILE, num_cols=2, per_page=4, page_key="anime_news_page")
+        render_news_cards(ANIME_NEWS_FILE, num_cols=2, per_page=4, page_key="anime_news_page", filter_fn=filter_for_anime_tab)
 
     with col_search:
         section_header("SEARCH", "Browse by Genre")

@@ -10,8 +10,11 @@ from datetime import datetime
 from email.utils import parsedate_to_datetime
 from PIL import Image
 
+import base64 as _base64
 _FAVICON_PATH = os.path.join(os.path.dirname(__file__), "vNews_logo.ico")
 _favicon = Image.open(_FAVICON_PATH) if os.path.exists(_FAVICON_PATH) else "📰"
+_LOGO_B64 = _base64.b64encode(open(_FAVICON_PATH, "rb").read()).decode() if os.path.exists(_FAVICON_PATH) else ""
+_LOGO_SRC = f"data:image/x-icon;base64,{_LOGO_B64}" if _LOGO_B64 else ""
 
 st.set_page_config(page_title="Daily Aggregator", page_icon=_favicon, layout="wide")
 
@@ -173,6 +176,9 @@ div[data-testid="stAppViewContainer"]::before {
     margin-bottom: 1rem;
 }
 .masthead-brand {
+    display: flex;
+    align-items: center;
+    gap: .1em;
     font-family: var(--font-serif);
     font-size: 2.5rem;
     font-weight: 900;
@@ -180,6 +186,12 @@ div[data-testid="stAppViewContainer"]::before {
     color: var(--text-1);
     line-height: 1;
     margin-right: auto;
+}
+.masthead-logo {
+    height: 1.2em;
+    width: auto;
+    display: block;
+    flex-shrink: 0;
 }
 .masthead-brand em {
     font-style: italic;
@@ -1505,7 +1517,7 @@ def render_dashboard_header():
     header_html = f"""
 <div class="masthead">
   <div class="masthead-top">
-    <div class="masthead-brand">Daily<em>Agg</em></div>
+    <div class="masthead-brand">{f'<img class="masthead-logo" src="{_LOGO_SRC}" alt="">' if _LOGO_SRC else ""}Daily<em>Agg</em></div>
     <div class="masthead-live">
       <span class="live-badge"><span class="live-dot"></span>LIVE</span>
       <span class="masthead-count"><strong>{total}</strong>&nbsp;articles</span>

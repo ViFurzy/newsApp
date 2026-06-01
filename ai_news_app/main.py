@@ -9,7 +9,7 @@ from datetime import datetime
 
 SCHEDULE_TIMES = ["08:00", "10:00", "12:00", "14:00", "16:00", "18:00"]
 
-DATA_DIR = "/app/data"
+DATA_DIR = os.environ.get("DATA_DIR", "/app/data")
 AI_NEWS_FILE = os.path.join(DATA_DIR, "news.json")
 GAMES_NEWS_FILE = os.path.join(DATA_DIR, "games_news.json")
 FREE_GAMES_FILE = os.path.join(DATA_DIR, "free_games.json")

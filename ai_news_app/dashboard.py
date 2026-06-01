@@ -10,6 +10,7 @@ from datetime import datetime
 from email.utils import parsedate_to_datetime
 from PIL import Image
 
+import html as _html
 import base64 as _base64
 _FAVICON_PATH = os.path.join(os.path.dirname(__file__), "vNews_logo.ico")
 _favicon = Image.open(_FAVICON_PATH) if os.path.exists(_FAVICON_PATH) else "📰"
@@ -98,6 +99,8 @@ div[data-testid="stToolbar"],
     --font-mono:       'IBM Plex Mono', 'Courier New', monospace;
     --blur:            blur(20px) saturate(160%);
     --ease-expo:       cubic-bezier(0.16, 1, 0.3, 1);
+    --shadow-card-hover: 0 24px 64px rgba(200,112,56,0.13), 0 8px 28px rgba(0,0,0,.50);
+    --shadow-row-hover:  0 6px 28px rgba(200,112,56,0.08), 0 2px 8px rgba(0,0,0,.28);
 }
 [data-theme="light"] {
     --bg:              #f3ede5;
@@ -131,6 +134,9 @@ div[data-testid="stToolbar"],
 /* ── Base ───────────────────────────────────────────────── */
 html, body, [class*="css"], .stApp {
     font-family: var(--font) !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: 'cv11' on, 'liga' on, 'kern' on;
 }
 /* Body carries the solid base so fixed image overlays sit below .stApp */
 html, body {
@@ -166,9 +172,21 @@ div[data-testid="stAppViewContainer"]::before {
 .masthead {
     padding: 1rem 0 1.4rem;
     border-bottom: 1px solid var(--border);
-    margin-bottom: 1px solid var(--border);
+    margin-bottom: 0;
     animation: fade-up .65s var(--ease-expo) both;
+    position: relative;
 }
+.masthead::before {
+    content: '';
+    position: absolute;
+    top: -80px; left: 50%;
+    transform: translateX(-50%);
+    width: 80%; height: 220px;
+    background: radial-gradient(ellipse at 50% 40%, rgba(200,112,56,0.042) 0%, transparent 68%);
+    pointer-events: none;
+    z-index: 0;
+}
+.masthead > * { position: relative; z-index: 1; }
 .masthead-top {
     display: flex;
     align-items: baseline;
@@ -180,9 +198,9 @@ div[data-testid="stAppViewContainer"]::before {
     align-items: center;
     gap: .1em;
     font-family: var(--font-serif);
-    font-size: 2.5rem;
+    font-size: 2.75rem;
     font-weight: 900;
-    letter-spacing: -.045em;
+    letter-spacing: -.052em;
     color: var(--text-1);
     line-height: 1;
     margin-right: auto;
@@ -259,8 +277,8 @@ div[data-testid="stAppViewContainer"]::before {
     height: 55px;
     display: flex;
     align-items: center;
-    border-bottom: 1px;
-    border-top: 1px;
+    border-bottom: 1px solid var(--border);
+    border-top: 1px solid var(--border);
     margin: 0 -2rem 1rem;
     position: relative;
     background: var(--surface);
@@ -290,7 +308,7 @@ div[data-testid="stAppViewContainer"]::before {
     align-items: center;
     gap: 6px;
     background: var(--bg-raised);
-    border-right: 1px;
+    border-right: 1px solid var(--border);
     font-family: var(--font-mono);
     font-size: .570rem;
     font-weight: 600;
@@ -387,10 +405,10 @@ div[data-testid="stAppViewContainer"]::before {
 .section-hdr {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    margin: 0 0 18px;
-    padding-bottom: 10px;
-    border-bottom: 1px;
+    gap: 5px;
+    margin: 0 0 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
 }
 .section-hdr-top {
     display: flex;
@@ -399,21 +417,34 @@ div[data-testid="stAppViewContainer"]::before {
 }
 .section-hdr-cat {
     font-family: var(--font-mono);
-    font-size: .595rem;
+    font-size: .575rem;
     font-weight: 600;
     color: var(--accent);
-    letter-spacing: .16em;
+    letter-spacing: .18em;
     text-transform: uppercase;
     flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.section-hdr-cat::before {
+    content: '';
+    display: inline-block;
+    width: 16px;
+    height: 1px;
+    background: var(--accent);
+    flex-shrink: 0;
+    opacity: .65;
 }
 .section-hdr h2 {
     font-family: var(--font-serif);
-    font-size: 1.30rem;
+    font-size: 1.42rem;
     font-weight: 700;
     color: var(--text-1);
     margin: 0;
-    letter-spacing: -.02em;
-    line-height: 1.2;
+    letter-spacing: -.025em;
+    line-height: 1.18;
+    text-wrap: balance;
 }
 .section-pill {
     font-family: var(--font-mono);
@@ -478,18 +509,29 @@ div[data-testid="stAppViewContainer"]::before {
 .nc:nth-child(4) { animation-delay: 150ms; }
 .nc:nth-child(5) { animation-delay: 200ms; }
 .nc:nth-child(6) { animation-delay: 250ms; }
+.nc::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), rgba(200,112,56,0.25) 70%, transparent);
+    opacity: 0;
+    transition: opacity .28s;
+    z-index: 2;
+}
 .nc:hover {
     background: var(--surface-hover);
-    border-top-color: var(--accent);
+    border-top-color: transparent;
     border-color: var(--border-2);
-    transform: translateY(-3px);
-    box-shadow: 0 20px 56px rgba(0,0,0,.52);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-card-hover);
 }
+.nc:hover::before { opacity: 1; }
 .nc-link { position: absolute; inset: 0; z-index: 10; cursor: pointer; }
 
 .nc-img {
     width: 100%;
-    height: 164px;
+    height: 186px;
     flex-shrink: 0;
     background-size: cover;
     background-position: center;
@@ -503,9 +545,9 @@ div[data-testid="stAppViewContainer"]::before {
     content: '';
     position: absolute;
     bottom: 0; left: 0; right: 0;
-    height: 60px;
-    background: linear-gradient(to bottom, transparent, var(--bg));
-    opacity: .7;
+    height: 90px;
+    background: linear-gradient(to bottom, transparent 0%, rgba(20,20,24,0.6) 60%, var(--bg) 100%);
+    opacity: .88;
 }
 .nc-flag {
     position: absolute;
@@ -517,7 +559,7 @@ div[data-testid="stAppViewContainer"]::before {
 
 
 .nc-body {
-    padding: 14px 16px 16px;
+    padding: 15px 18px 18px;
     display: flex;
     flex-direction: column;
     flex-grow: 1;
@@ -610,6 +652,7 @@ div[data-testid="stAppViewContainer"]::before {
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    text-wrap: balance;
 }
 .nc:hover .nc-title { color: var(--accent); }
 .nc-summary {
@@ -649,7 +692,7 @@ a { text-decoration: none !important; }
     background: var(--surface);
     -webkit-backdrop-filter: var(--blur);
     backdrop-filter: var(--blur);
-    border: 1px;
+    border: 1px solid var(--border);
     border-left: 2px solid transparent;
     border-radius: var(--r-sm);
     padding: 10px 14px 10px 11px;
@@ -672,7 +715,7 @@ a { text-decoration: none !important; }
     border-left-color: var(--accent);
     border-color: var(--border-2);
     transform: translateX(4px);
-    box-shadow: 0 4px 20px rgba(0,0,0,.30);
+    box-shadow: var(--shadow-row-hover);
 }
 .gr-thumb {
     flex-shrink: 0;
@@ -696,6 +739,7 @@ a { text-decoration: none !important; }
     -webkit-box-orient: vertical;
     overflow: hidden;
     transition: color .18s;
+    text-wrap: balance;
 }
 .gr:hover .gr-title { color: var(--accent); }
 .gr-meta {
@@ -812,10 +856,12 @@ div[data-baseweb="select"] { background: var(--surface) !important; }
 }
 .skel-img, .skel-line, .skel-thumb {
     background: linear-gradient(90deg,
-        var(--surface) 0%, var(--surface-2) 38%,
-        var(--surface-2) 62%, var(--surface) 100%);
+        var(--surface) 0%,
+        rgba(200,112,56,0.045) 38%,
+        rgba(200,112,56,0.045) 62%,
+        var(--surface) 100%);
     background-size: 400% 100%;
-    animation: shimmer 1.6s ease infinite;
+    animation: shimmer 1.8s ease infinite;
 }
 .skel-img  { width: 100%; flex-shrink: 0; }
 .skel-line { border-radius: 4px; margin-bottom: 9px; height: 10px; }
@@ -1359,7 +1405,7 @@ def build_news_skeleton(num_cols=3, count=6):
         delay = i * 55
         cards += (
             f'<div class="nc" style="animation-delay:{delay}ms">'
-            f'<div class="skel-img" style="height:158px"></div>'
+            f'<div class="skel-img" style="height:186px"></div>'
             f'<div class="nc-body">'
             f'<div class="skel-line w40" style="margin-bottom:12px"></div>'
             f'<div class="skel-line h16 w80"></div>'
@@ -1439,17 +1485,23 @@ def render_news_cards(json_file_path, num_cols=3, per_page=None, page_key=None, 
         fresh           = is_fresh(item.get("published",""))
         read_t          = estimate_reading_time(summary)
 
-        badges = f'<span class="src-badge">{RSS_ICON}{src_name}</span>'
+        _title   = _html.escape(item.get("title", ""))
+        _link    = _html.escape(item.get("link", ""))
+        _img     = image_url.replace("'", "%27")
+        _summary = _html.escape(summary)
+        _src     = _html.escape(src_name)
+
+        badges = f'<span class="src-badge">{RSS_ICON}{_src}</span>'
         if fresh:
             badges += ' <span class="badge-new">New</span>'
 
         cards_html += f"""<div class="nc">
-<a href="{item['link']}" target="_blank" class="nc-link" aria-label="{item['title']}"></a>
-<div class="nc-img" style="background-image:url('{image_url}');">{render_flag(flag)}</div>
+<a href="{_link}" target="_blank" class="nc-link" aria-label="{_title}"></a>
+<div class="nc-img" style="background-image:url('{_img}');">{render_flag(flag)}</div>
 <div class="nc-body">
 <div class="nc-meta">{badges}<span class="nc-time">{rel_t}</span></div>
-<div class="nc-title">{item['title']}</div>
-<div class="nc-summary">{summary}</div>
+<div class="nc-title">{_title}</div>
+<div class="nc-summary">{_summary}</div>
 <div class="nc-footer">
 <span class="nc-footer-item">{BOOK_ICON}&nbsp;{read_t}</span>
 <span class="nc-footer-item">{CLOCK_ICON}&nbsp;{format_date(item.get('published',''))}</span>
@@ -1572,13 +1624,13 @@ def fetch_anime_by_genre(genre_id, sort_by="score"):
 
 
 def render_anime_row(anime, idx=0):
-    title     = anime.get("title","Unknown")
+    title     = _html.escape(anime.get("title","Unknown"))
     score     = anime.get("score")
     episodes  = anime.get("episodes")
     year      = anime.get("year","")
-    status    = (anime.get("status") or "").replace("Finished Airing","Finished").replace("Currently Airing","Airing")
-    image_url = anime.get("images",{}).get("jpg",{}).get("image_url","")
-    url       = anime.get("url","#")
+    status    = _html.escape((anime.get("status") or "").replace("Finished Airing","Finished").replace("Currently Airing","Airing"))
+    image_url = anime.get("images",{}).get("jpg",{}).get("image_url","").replace("'", "%27")
+    url       = _html.escape(anime.get("url","#"))
 
     parts = []
     if score:    parts.append(f"★ {score}")
@@ -1673,17 +1725,20 @@ with tab_games:
                         f'&nbsp;·&nbsp;<span class="gr-countdown {exp_cls}" data-expiry="{end_date_raw}">{days_lbl}</span>'
                     ) if days_lbl else ""
 
+                    _g_link  = _html.escape(game.get("link", ""))
+                    _g_title = _html.escape(game.get("title", ""))
+                    _g_thumb = game.get("thumbnail", "").replace("'", "%27")
                     rows_html += (
-                        f'<a href="{game["link"]}" target="_blank" class="gr" '
+                        f'<a href="{_g_link}" target="_blank" class="gr" '
                         f'style="animation-delay:{delay}ms;">'
                         f'<div class="gr-thumb" style="width:{_THUMB_W}px;height:{_THUMB_H}px;'
-                        f'background-size:cover;background-image:url(\'{game.get("thumbnail","")}\');"></div>'
+                        f'background-size:cover;background-image:url(\'{_g_thumb}\');"></div>'
                         f'<div class="gr-body">'
                         f'<div style="margin-bottom:5px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">'
                         f'<span class="badge-free">{CHECK_ICON}FREE</span>'
                         f'<span style="font-size:.60rem;color:var(--text-3);">{price_html}</span>'
                         f'</div>'
-                        f'<div class="gr-title">{game["title"]}</div>'
+                        f'<div class="gr-title">{_g_title}</div>'
                         f'<div class="gr-meta">{platforms}{expiry_html}</div>'
                         f'</div></a>'
                     )

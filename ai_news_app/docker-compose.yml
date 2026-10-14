@@ -1,7 +1,6 @@
 services:
   ai-news-app:
     build: .
-    image: ai-news-app:latest
     container_name: ai_news_app
     restart: unless-stopped
     ports:

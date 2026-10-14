@@ -1,8 +1,13 @@
 [server]
 headless = true
+enableStaticServing = true
 enableCORS = false
 enableXsrfProtection = false
 maxUploadSize = 10
+
+[theme]
+base = "dark"
+primaryColor = "#c87038"
 
 [browser]
 gatherUsageStats = false

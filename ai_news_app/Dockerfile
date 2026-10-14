@@ -16,7 +16,9 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     pip install --upgrade pip && \
     pip install -r requirements.txt
 
-COPY main.py dashboard.py vNews_logo.ico start.sh ./
+COPY main.py dashboard.py config.py vNews_logo.ico start.sh ./
+COPY ui/ ui/
+COPY static/ static/
 COPY .streamlit/ .streamlit/
 
 RUN sed -i 's/\r//' start.sh && chmod +x start.sh && mkdir -p /app/data

@@ -8,8 +8,8 @@ services:
       - "8501:8501"
     volumes:
       - news_data:/app/data
-    env_file:
-      - .env
+    environment:
+      - TZ=Europe/Warsaw
     networks:
       - app-network
     healthcheck:

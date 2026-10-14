@@ -3,11 +3,14 @@ ui/styles.py — All CSS and JS injected into the Streamlit page.
 
 Call inject_styles() once at the top of dashboard.py after set_page_config.
 """
+import json
 from functools import lru_cache
 from pathlib import Path
 
 import streamlit as st
 import streamlit.components.v1 as components
+
+from config import TAB_BACKGROUNDS
 
 # ── JS: preconnect / DNS prefetch hints ───────────────────────────────────────
 _JS_PRECONNECT = """
@@ -102,7 +105,7 @@ _JS_TABS = """
 <script>
 (function(){
     var p=window.parent.document;
-    var TAB_KEYS=['ai','gaming','anime','saved'];
+    var TAB_KEYS=['ai','gaming','anime','vibe','design','saved'];
     var LS_KEY='_da_active_tab';
 
     if(!p.getElementById('da-loader')&&!window.parent._daTabRestored){
@@ -158,21 +161,13 @@ _JS_TABS = """
 """
 
 # ── JS: per-tab background images (cross-fade on tab switch / theme change) ───
-_JS_BACKGROUNDS = """
+_JS_BACKGROUNDS_TPL = """
 <script>
 (function(){
     var p=window.parent.document;
 
-    var IMGS=[
-        'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=1920&q=50',
-        'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1920&q=50',
-        'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=1920&q=50'
-    ];
-    var TINTS=[
-        'rgba(91,156,246,0.040)',
-        'rgba(34,197,94,0.032)',
-        'rgba(167,139,250,0.040)'
-    ];
+    var IMGS=__IMGS__;
+    var TINTS=__TINTS__;
 
     function ov(){
         return p.documentElement.getAttribute('data-theme')==='light'
@@ -229,6 +224,13 @@ _JS_BACKGROUNDS = """
 </script>
 """
 
+
+
+_JS_BACKGROUNDS = (
+    _JS_BACKGROUNDS_TPL
+    .replace("__IMGS__", json.dumps([b["image"] for b in TAB_BACKGROUNDS]))
+    .replace("__TINTS__", json.dumps([b["tint"] for b in TAB_BACKGROUNDS]))
+)
 
 
 # ── JS: read-later stars (kept in this browser's localStorage) + Saved tab ────

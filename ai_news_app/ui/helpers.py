@@ -4,6 +4,7 @@ ui/helpers.py — Pure helper functions, icon SVGs, and flag lookup.
 No Streamlit calls here — safe to import anywhere, fast to test.
 """
 import re
+import zlib
 from datetime import datetime
 from email.utils import parsedate_to_datetime
 from html import unescape
@@ -120,14 +121,40 @@ _FALLBACK_RULES = [
     (re.compile(r"\b(?:gra|games?|rpg|fps|multiplayer|trailer)\b"), _IMG_GAME),
 ]
 _CATEGORY_DEFAULT = {"ai": _IMG_DEFAULT, "gaming": _IMG_GAME, "anime": _IMG_ANIME}
+# vibe/design skip keyword rules (every item is AI-ish) and pick from a pool by title hash,
+# so image-less cards are varied but stable between reruns.
+_CATEGORY_POOL = {
+    "vibe": [_UNSPLASH.format(x) for x in (
+        "photo-1461749280684-dccba630e2f6", "photo-1515879218367-8466d910aaa4",
+        "photo-1605379399642-870262d3d051", "photo-1555066931-4365d14bab8c")],
+    "design": [_UNSPLASH.format(x) for x in (
+        "photo-1558655146-d09347e92766", "photo-1626785774573-4b799315345d",
+        "photo-1586717791821-3f44a563fa4c", "photo-1561070791-2526d30994b5",
+        "photo-1541701494587-cb58502866ab")],
+}
 
 
 def get_fallback_image(title: str, summary: str = "", category: str = "") -> str:
+    pool = _CATEGORY_POOL.get(category)
+    if pool:
+        return pool[zlib.crc32(title.encode("utf-8")) % len(pool)]
     text = (title + " " + summary).lower()
     for rx, url in _FALLBACK_RULES:
         if rx.search(text):
             return url
     return _CATEGORY_DEFAULT.get(category, _IMG_DEFAULT)
+
+
+# ── Image URL hygiene ──────────────────────────────────────────────────────────
+
+def https_url(url: str) -> str:
+    """Upgrade http:// image URLs (some feeds still emit them) so they are not blocked as mixed content."""
+    return "https://" + url[len("http://"):] if url.startswith("http://") else url
+
+
+def needs_anonymous_cors(url: str) -> bool:
+    """Medium's image CDN sets third-party cookies; anonymous CORS mode makes browsers ignore them."""
+    return "medium.com/" in url
 
 
 # ── Source / flag parsing ──────────────────────────────────────────────────────

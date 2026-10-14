@@ -20,14 +20,18 @@ from config import (
     AI_NEWS_FILE,
     AI_PER_PAGE,
     ANIME_NEWS_FILE,
+    DESIGN_NEWS_FILE,
+    DESIGN_PER_PAGE,
     FREE_GAMES_FILE,
     GAMES_NEWS_FILE,
     STATUS_FILE,
+    VIBE_NEWS_FILE,
+    VIBE_PER_PAGE,
     WATCH_INTERVAL_SEC,
 )
 from ui.styles import inject_styles
 from ui.helpers import count_items, get_file_age_str
-from ui.filters import filter_for_ai_tab
+from ui.filters import filter_for_ai_tab, filter_for_vibe_tab
 from ui.cards import render_news_cards, section_header
 from ui.ticker import render_dashboard_header
 from ui.games import render_games_tab
@@ -43,14 +47,16 @@ st.set_page_config(page_title="Daily Aggregator", page_icon=_favicon, layout="wi
 inject_styles()
 
 # ── Session state ──────────────────────────────────────────────────────────────
-for _k in ("free_games_page", "ai_news_page", "games_news_page", "anime_news_page"):
+for _k in ("free_games_page", "ai_news_page", "games_news_page", "anime_news_page",
+           "vibe_news_page", "design_news_page"):
     if _k not in st.session_state:
         st.session_state[_k] = 0
 
 # ── Live updates ───────────────────────────────────────────────────────────────
 # main.py (the daemon) owns fetching. The page just watches the data files and
 # re-renders when they change, so new posts appear without a manual refresh.
-_WATCHED = (AI_NEWS_FILE, GAMES_NEWS_FILE, ANIME_NEWS_FILE, FREE_GAMES_FILE, STATUS_FILE)
+_WATCHED = (AI_NEWS_FILE, GAMES_NEWS_FILE, ANIME_NEWS_FILE, VIBE_NEWS_FILE, DESIGN_NEWS_FILE,
+            FREE_GAMES_FILE, STATUS_FILE)
 
 
 def _data_stamp() -> float:
@@ -72,7 +78,9 @@ _watch_data()
 render_dashboard_header()
 
 # ── Tabs ───────────────────────────────────────────────────────────────────────
-tab_ai, tab_games, tab_anime, tab_saved = st.tabs(["AI & Tech", "Gaming", "Anime", "Saved"])
+tab_ai, tab_games, tab_anime, tab_vibe, tab_design, tab_saved = st.tabs(
+    ["AI & Tech", "Gaming", "Anime", "Vibe Code", "Design", "Saved"]
+)
 
 with tab_ai:
     n       = count_items(AI_NEWS_FILE)
@@ -95,6 +103,39 @@ with tab_games:
 
 with tab_anime:
     render_anime_tab()
+
+with tab_vibe:
+    n       = count_items(VIBE_NEWS_FILE)
+    updated = get_file_age_str(VIBE_NEWS_FILE)
+    section_header(
+        ">_ VIBE CODE", "Vibe Coding & AI Dev Tools",
+        count=n or None, updated=updated if n else None,
+    )
+    render_news_cards(
+        VIBE_NEWS_FILE,
+        num_cols=3,
+        per_page=VIBE_PER_PAGE,
+        page_key="vibe_news_page",
+        filter_fn=filter_for_vibe_tab,
+        category="vibe",
+        variant="code",
+    )
+
+with tab_design:
+    n       = count_items(DESIGN_NEWS_FILE)
+    updated = get_file_age_str(DESIGN_NEWS_FILE)
+    section_header(
+        "DESIGN", "Design, UX & Visual Culture",
+        count=n or None, updated=updated if n else None,
+    )
+    render_news_cards(
+        DESIGN_NEWS_FILE,
+        num_cols=3,
+        per_page=DESIGN_PER_PAGE,
+        page_key="design_news_page",
+        category="design",
+        variant="visual",
+    )
 
 with tab_saved:
     section_header("READ LATER", "Saved Stories")

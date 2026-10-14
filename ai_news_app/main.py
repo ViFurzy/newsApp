@@ -26,7 +26,7 @@ import feedparser
 import requests
 import schedule
 from requests.adapters import HTTPAdapter
-from ui.helpers import strip_html
+from ui.helpers import https_url, strip_html
 from urllib3.util.retry import Retry
 
 # ── Config ─────────────────────────────────────────────────────────────────────
@@ -43,6 +43,10 @@ from config import (
     FETCH_INTERVAL_MIN,
     MAX_ENTRIES_PER_FEED,
     STATUS_FILE,
+    DESIGN_FEEDS,
+    DESIGN_NEWS_FILE,
+    VIBE_FEEDS,
+    VIBE_NEWS_FILE,
 )
 
 # ── HTTP session with retry logic ──────────────────────────────────────────────
@@ -58,7 +62,8 @@ _http.mount("http://",  HTTPAdapter(max_retries=_retry_strategy))
 _http.headers.update({"User-Agent": "DailyAgg/2.0 (+https://github.com/ViFurzy/newsApp)"})
 
 _REQUEST_TIMEOUT = 15   # seconds per request
-_MAX_ITEMS_KEPT  = 60   # keep the N most-recent articles per feed file
+_MAX_ITEMS_KEPT  = 90   # keep the N most-recent articles per feed file
+_MAX_PER_SOURCE  = 15   # ...but at most N per source, so slow feeds are not crowded out by daily ones
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -94,7 +99,11 @@ def _ts(item: dict) -> float:
 
 
 def extract_image(entry) -> str:
-    """Best-effort image URL extraction from an RSS entry."""
+    """Best-effort image URL extraction from an RSS entry (always https when the host allows it)."""
+    return https_url(_extract_image(entry))
+
+
+def _extract_image(entry) -> str:
     if getattr(entry, "media_content", None):
         return entry.media_content[0].get("url", "")
     if getattr(entry, "enclosures", None):
@@ -176,7 +185,16 @@ def merge_items(existing: dict, new_entries: list[dict]) -> list[dict]:
     """Upsert by link, sort newest first, keep the most recent N."""
     for e in new_entries:
         existing[e["link"]] = e
-    return sorted(existing.values(), key=_ts, reverse=True)[:_MAX_ITEMS_KEPT]
+    kept, per_source = [], {}
+    for it in sorted(existing.values(), key=_ts, reverse=True):
+        src = it.get("source", "")
+        if per_source.get(src, 0) >= _MAX_PER_SOURCE:
+            continue
+        per_source[src] = per_source.get(src, 0) + 1
+        kept.append(it)
+        if len(kept) >= _MAX_ITEMS_KEPT:
+            break
+    return kept
 
 
 def fetch_rss_feeds(feeds_dict: dict, output_file: Path, http_cache: dict, failed: list) -> int:
@@ -247,6 +265,8 @@ def fetch_all_data() -> None:
     ai_count    = fetch_rss_feeds(AI_FEEDS,    AI_NEWS_FILE,    http_cache, failed)
     games_count = fetch_rss_feeds(GAMES_FEEDS, GAMES_NEWS_FILE, http_cache, failed)
     anime_count = fetch_rss_feeds(ANIME_FEEDS, ANIME_NEWS_FILE, http_cache, failed)
+    vibe_count   = fetch_rss_feeds(VIBE_FEEDS,   VIBE_NEWS_FILE,   http_cache, failed)
+    design_count = fetch_rss_feeds(DESIGN_FEEDS, DESIGN_NEWS_FILE, http_cache, failed)
     fg_count    = fetch_free_games()
     _safe_write_json(_HTTP_CACHE_FILE, http_cache)
     _safe_write_json(STATUS_FILE, {"failed": failed})
@@ -254,7 +274,8 @@ def fetch_all_data() -> None:
     print(
         f"[{datetime.now()}] Done. "
         f"AI ({ai_count}), Games ({games_count}), "
-        f"FreeGames ({fg_count}), Anime ({anime_count})."
+        f"FreeGames ({fg_count}), Anime ({anime_count}), "
+        f"Vibe ({vibe_count}), Design ({design_count})."
     )
 
 

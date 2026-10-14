@@ -76,3 +76,13 @@ def test_fetch_rss_feeds_collects_failed_sources(monkeypatch, tmp_path):
     out = tmp_path / "news.json"
     n = main.fetch_rss_feeds({"Good": "https://x/good", "Bad": "https://x/bad"}, out, {}, failed)
     assert failed == ["Bad"] and n == 2 and out.exists()
+
+
+def test_merge_keeps_slow_sources_via_per_source_cap():
+    import main
+    fast = [{"link": f"https://f/{i}", "source": "fast", "published": f"Tue, 02 Jan 2024 {h:02d}:00:00 GMT"}
+            for i, h in enumerate(range(23))]                              # 23 recent items
+    slow = [{"link": "https://s/1", "source": "slow", "published": "Mon, 01 Jan 2024 01:00:00 GMT"}]
+    merged = main.merge_items({}, fast + slow)
+    assert sum(1 for m in merged if m["source"] == "fast") == main._MAX_PER_SOURCE
+    assert any(m["source"] == "slow" for m in merged)                      # older but still present

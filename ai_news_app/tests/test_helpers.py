@@ -69,3 +69,24 @@ ITEMS = [
 def test_filter_items(query, sources, expected_titles):
     from ui.cards import filter_items
     assert [i["title"] for i in filter_items(ITEMS, query, sources)] == expected_titles
+
+
+@pytest.mark.parametrize("url,expected", [
+    ("http://static.dezeen.com/a.jpg", "https://static.dezeen.com/a.jpg"),
+    ("https://x/a.jpg", "https://x/a.jpg"),
+    ("", ""),
+    ("//cdn/x.jpg", "//cdn/x.jpg"),
+], ids=["upgrade", "keep-https", "empty", "protocol-relative"])
+def test_https_url(url, expected):
+    from ui.helpers import https_url
+    assert https_url(url) == expected
+
+
+@pytest.mark.parametrize("url,expected", [
+    ("https://cdn-images-1.medium.com/max/1024/x.jpeg", True),
+    ("https://miro.medium.com/v2/resize/x.png", True),
+    ("https://static.dezeen.com/a.jpg", False),
+])
+def test_needs_anonymous_cors(url, expected):
+    from ui.helpers import needs_anonymous_cors
+    assert needs_anonymous_cors(url) is expected

@@ -12,7 +12,7 @@ from email.utils import parsedate_to_datetime
 
 from ui.helpers import (
     BOOK_ICON, CLOCK_ICON, RSS_ICON,
-    format_date, get_fallback_image, is_fresh,
+    format_date, get_fallback_image, https_url, is_fresh, needs_anonymous_cors,
     parse_source, relative_time, render_flag,
     estimate_reading_time, strip_html,
 )
@@ -172,6 +172,7 @@ def render_news_cards(
     page_key: str = None,
     filter_fn=None,
     category: str = "",
+    variant: str = "",
 ) -> None:
     items = load_sorted_items(str(json_file_path))
     if items is None:
@@ -202,13 +203,13 @@ def render_news_cards(
     else:
         total_pages = 1
 
-    grid_cls    = "bg-3" if num_cols == 3 else "bg-2"
+    grid_cls    = ("bg-3" if num_cols == 3 else "bg-2") + (f" bg-{variant}" if variant else "")
     cards_html  = ""
 
     for item in items:
         flag, src_name = parse_source(item.get("source", ""))
         fallback_url   = get_fallback_image(item.get("title", ""), item.get("summary", ""), category)
-        image_url      = item.get("image") or fallback_url
+        image_url      = https_url(item.get("image") or fallback_url)
         summary  = strip_html(item.get("summary", ""))[:300]
         rel_t    = relative_time(item.get("published", ""))
         fresh    = is_fresh(item.get("published", ""))
@@ -218,6 +219,7 @@ def render_news_cards(
         _link    = _html.escape(item.get("link", ""))
         _img     = _html.escape(image_url, quote=True)
         _fb      = _html.escape(fallback_url, quote=True)
+        _cors    = ' crossorigin="anonymous"' if needs_anonymous_cors(image_url) else ""
         _summary = _html.escape(summary)
         _src     = _html.escape(src_name)
 
@@ -228,7 +230,7 @@ def render_news_cards(
         cards_html += f"""<div class="nc">
 <a href="{_link}" target="_blank" class="nc-link" aria-label="{_title}"></a>
 <button type="button" class="nc-save" data-link="{_link}" aria-pressed="false" aria-label="Save for later">&#9734;</button>
-<div class="nc-img"><img class="nc-photo" src="{_img}" loading="lazy" decoding="async" alt="" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='{_fb}'">{render_flag(flag)}</div>
+<div class="nc-img"><img class="nc-photo" src="{_img}" loading="lazy" decoding="async" alt="" referrerpolicy="no-referrer"{_cors} onerror="this.onerror=null;this.src='{_fb}'">{render_flag(flag)}</div>
 <div class="nc-body">
 <div class="nc-meta">{badges}<span class="nc-time">{rel_t}</span></div>
 <div class="nc-title">{_title}</div>

@@ -48,3 +48,21 @@ def filter_for_ai_tab(items: list[dict]) -> list[dict]:
 def filter_for_anime_tab(items: list[dict]) -> list[dict]:
     """Drop gaming articles from the anime tab (anime-based games belong in Gaming)."""
     return [it for it in items if not _is_gaming_title(it)]
+
+
+# ── Vibe Code tab: broad feeds are filtered, focused feeds pass through ───────
+_VIBE_BROAD_SOURCES = ("Latent Space", "ITwiz")
+_VIBE_TERMS = (
+    "vibe", "coding", "copilot", "cursor", "claude", "codex", "gemini cli", "agentic",
+    "llm", "prompt", "mcp", "developer", "software", "programming", "github",
+    "kodowan", "programow", "programist", "oprogramowani",
+)
+
+
+def filter_for_vibe_tab(items: list[dict]) -> list[dict]:
+    """Keep everything from focused feeds; keep only coding/AI-dev items from broad ones."""
+    def keep(it: dict) -> bool:
+        if not any(b in it.get("source", "") for b in _VIBE_BROAD_SOURCES):
+            return True
+        return any(term in _item_text(it) for term in _VIBE_TERMS)
+    return [it for it in items if keep(it)]

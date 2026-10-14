@@ -924,5 +924,13 @@ div[data-baseweb="select"] { background: var(--surface) !important; }
 }
 
 @media (max-width: 700px) {
-    .stTabs [data-baseweb="tab"] { padding: 0 .85rem; }   /* all four tabs fit a 390px phone */
+    .stTabs [data-baseweb="tab"] { padding: 0 .38rem; font-size: .78rem; }   /* six tabs fit a 390px phone */
 }
+
+/* ── Section variants ───────────────────────────────────── */
+/* Vibe Code: terminal flavour (mono summaries, prompt glyph in the eyebrow) */
+.bg-code .nc-summary { font-family: var(--font-mono); font-size: .74rem; line-height: 1.65; }
+.bg-code .nc-title { letter-spacing: -.012em; }
+/* Design: image-first editorial cards */
+.bg-visual .nc-img { aspect-ratio: 16 / 9; max-height: 240px; }
+.bg-visual .nc-summary { -webkit-line-clamp: 2; }

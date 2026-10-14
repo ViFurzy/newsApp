@@ -10,7 +10,9 @@ from pathlib import Path
 
 import streamlit as st
 
-from config import AI_NEWS_FILE, ANIME_NEWS_FILE, GAMES_NEWS_FILE, STATUS_FILE
+from config import (
+    AI_NEWS_FILE, ANIME_NEWS_FILE, DESIGN_NEWS_FILE, GAMES_NEWS_FILE, STATUS_FILE, VIBE_NEWS_FILE,
+)
 from ui.helpers import count_items, get_file_age_str, parse_source
 from ui.cards import load_sorted_items
 
@@ -32,6 +34,8 @@ def build_ticker_html() -> str:
         (AI_NEWS_FILE, "AI"),
         (GAMES_NEWS_FILE, "GAMING"),
         (ANIME_NEWS_FILE, "ANIME"),
+        (VIBE_NEWS_FILE, "VIBE"),
+        (DESIGN_NEWS_FILE, "DESIGN"),
     ]:
         items = load_sorted_items(str(filepath))
         if items:
@@ -83,7 +87,9 @@ def render_dashboard_header() -> None:
     ai_n    = count_items(AI_NEWS_FILE)
     games_n = count_items(GAMES_NEWS_FILE)
     anime_n = count_items(ANIME_NEWS_FILE)
-    total   = ai_n + games_n + anime_n
+    vibe_n  = count_items(VIBE_NEWS_FILE)
+    design_n = count_items(DESIGN_NEWS_FILE)
+    total   = ai_n + games_n + anime_n + vibe_n + design_n
     updated = get_file_age_str(AI_NEWS_FILE)
     now_str = datetime.now().strftime("%a, %d %b %Y").upper()
 
@@ -106,6 +112,10 @@ def render_dashboard_header() -> None:
     <span>Gaming&nbsp;<strong>{games_n}</strong></span>
     <span class="masthead-sep">·</span>
     <span>Anime&nbsp;<strong>{anime_n}</strong></span>
+    <span class="masthead-sep">·</span>
+    <span>Vibe&nbsp;<strong>{vibe_n}</strong></span>
+    <span class="masthead-sep">·</span>
+    <span>Design&nbsp;<strong>{design_n}</strong></span>
     <span class="masthead-sep">·</span>
     <span>Updated&nbsp;<strong>{updated}</strong></span>
     {_failed_sources_html()}

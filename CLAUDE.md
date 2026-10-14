@@ -55,6 +55,9 @@ docker compose up --build
 | `FETCH_INTERVAL_MIN` | 30 | Aggregator interval (config.py) |
 | `MAX_ENTRIES_PER_FEED` | 10 | Newest entries per feed per fetch (config.py) |
 | `AI_FEEDS` | 5 RSS URLs | TechCrunch, ML Mastery, KDnuggets, 2× Polish |
+| `VIBE_FEEDS` | 6 RSS URLs | Simon Willison (vibe-coding tag), Addy Osmani, Latent Space*, DEV #vibecoding, r/vibecoding, ITwiz* (PL) — *broad, filtered by `filter_for_vibe_tab` |
+| `DESIGN_FEEDS` | 7 RSS URLs | Smashing, UX Collective, NN/g, Abduzeedo, Muzli, Dezeen, Design Alley (PL) |
+| `TAB_BACKGROUNDS` | 6 entries | Per-tab background photo + tint, in tab order (alternates listed in config.py comments) |
 | `GAMES_FEEDS` | 5 RSS URLs | RPS, Polygon, GameRant, 2× Polish |
 
 ## Key constants (dashboard.py)
@@ -74,6 +77,9 @@ docker compose up --build
 - Accent: `#c87038` (warm amber); consistent with newspaper ink aesthetic
 - No glow effects, no grid background — clean flat dark surface
 - Pagination alignment uses a JS MutationObserver that stamps `.pagination-row` on `stHorizontalBlock` — don't remove it
+
+## Sections
+Tabs: **AI & Tech · Gaming · Anime · Vibe Code · Design · Saved**. Feeds were chosen by probing candidates live (HTTP 200, recent, parseable, images); dropped as dead/stale/blocked: Cursor blog, Codrops, It's Nice That, Core77, Designer News, Dribbble, CSS-Tricks, A List Apart, Awwwards. Vibe Code cards use a mono summary and a `>_` eyebrow (`.bg-code`); Design cards are image-first 16:9 (`.bg-visual`). Image-less vibe/design cards pick from a fixed pool by title hash. Per-source cap (`_MAX_PER_SOURCE`) keeps slow feeds (Smashing, NN/g) from being crowded out. Image URLs are upgraded to https; Medium images load with `crossorigin="anonymous"` to avoid third-party cookies.
 
 ## Features added in the UX pass
 - **Search + source chips** above every news grid (`ui/cards.py: _filter_bar`); picking sources is also how you hide the others. Changing a filter resets to page 1.

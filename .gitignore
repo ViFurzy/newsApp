@@ -8,8 +8,6 @@
 
 # ── Runtime data (generated, not source) ─────────────────────────────────────
 ai_news_app/data/
-ai_news_app/gotify_data/
-gotify_data/
 
 # ── Python ────────────────────────────────────────────────────────────────────
 __pycache__/

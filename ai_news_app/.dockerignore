@@ -8,7 +8,6 @@ __pycache__/
 !.env.example
 
 data/
-gotify_data/
 
 .git/
 .gitignore

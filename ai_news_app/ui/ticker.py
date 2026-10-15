@@ -15,6 +15,9 @@ from config import (
 )
 from ui.helpers import count_items, get_file_age_str, parse_source
 from ui.cards import load_sorted_items
+from ui.filters import (
+    filter_for_ai_tab, filter_for_anime_tab, filter_for_games_tab, filter_for_vibe_tab,
+)
 
 # ── Logo (base64-encoded for inline HTML) ──────────────────────────────────────
 _FAVICON_PATH = Path(__file__).parent.parent / "vNews_logo.ico"
@@ -30,16 +33,16 @@ _LOGO_SRC = f"data:image/x-icon;base64,{_LOGO_B64}" if _LOGO_B64 else ""
 
 def build_ticker_html() -> str:
     all_items  = []
-    for filepath, cat in [
-        (AI_NEWS_FILE, "AI"),
-        (GAMES_NEWS_FILE, "GAMING"),
-        (ANIME_NEWS_FILE, "ANIME"),
-        (VIBE_NEWS_FILE, "VIBE"),
-        (DESIGN_NEWS_FILE, "DESIGN"),
+    for filepath, cat, keep in [   # same per-tab filters as the cards, so the ticker never shows off-topic items
+        (AI_NEWS_FILE, "AI", filter_for_ai_tab),
+        (GAMES_NEWS_FILE, "GAMING", filter_for_games_tab),
+        (ANIME_NEWS_FILE, "ANIME", filter_for_anime_tab),
+        (VIBE_NEWS_FILE, "VIBE", filter_for_vibe_tab),
+        (DESIGN_NEWS_FILE, "DESIGN", lambda items: items),
     ]:
         items = load_sorted_items(str(filepath))
         if items:
-            for item in items[:6]:
+            for item in keep(items)[:6]:
                 all_items.append({"title": item["title"], "link": item["link"], "cat": cat})
 
     if not all_items:

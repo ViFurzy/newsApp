@@ -86,3 +86,36 @@ def test_merge_keeps_slow_sources_via_per_source_cap():
     merged = main.merge_items({}, fast + slow)
     assert sum(1 for m in merged if m["source"] == "fast") == main._MAX_PER_SOURCE
     assert any(m["source"] == "slow" for m in merged)                      # older but still present
+
+
+def test_items_of_removed_sources_are_pruned(monkeypatch, tmp_path):
+    import json
+    import main
+    out = tmp_path / "news.json"
+    out.write_text(json.dumps([
+        {"link": "https://old/1", "source": "Removed Source", "published": "Mon, 01 Jan 2024 01:00:00 GMT", "tags": []},
+        {"link": "https://x/old", "source": "Good", "published": "Mon, 01 Jan 2024 01:00:00 GMT", "tags": []},
+    ]), encoding="utf-8")
+    monkeypatch.setattr(main._http, "get", lambda url, **k: _Resp(200, XML))
+    main.fetch_rss_feeds({"Good": "https://x/good"}, out, {}, [])
+    sources = {i["source"] for i in json.loads(out.read_text(encoding="utf-8"))}
+    assert sources == {"Good"}
+
+
+def test_parse_entries_stores_feed_category_tags():
+    xml = ('<rss version="2.0"><channel><title>t</title><item><title>x</title><link>https://x/1</link>'
+           '<category>Movies</category><category> Games </category><category></category></item></channel></rss>')
+    assert parse_entries(xml, "s")[0]["tags"] == ["Movies", "Games"]
+
+
+def test_fetch_localizes_older_items_too(monkeypatch, tmp_path):
+    import json
+    import main
+    out = tmp_path / "news.json"
+    out.write_text(json.dumps([{"link": "https://old/1", "source": "Good", "image": "https://cdn/old.jpg",
+                                "published": "Mon, 01 Jan 2024 01:00:00 GMT", "tags": []}]), encoding="utf-8")
+    monkeypatch.setattr(main, "localize_image", lambda e: {**e, "image": "/app/static/img/x.webp"} if e.get("image") else e)
+    monkeypatch.setattr(main._http, "get", lambda url, **k: _Resp(200, XML))
+    main.fetch_rss_feeds({"Good": "https://x/good"}, out, {}, [])
+    old = [i for i in json.loads(out.read_text(encoding="utf-8")) if i["link"] == "https://old/1"][0]
+    assert old["image"] == "/app/static/img/x.webp"

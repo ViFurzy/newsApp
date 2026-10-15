@@ -53,3 +53,27 @@ def test_fallback_pool_is_stable_and_varied(category):
     imgs = [get_fallback_image(t, "", category) for t in titles]
     assert imgs == [get_fallback_image(t, "", category) for t in titles]   # deterministic across reruns
     assert len(set(imgs)) >= 3                                              # not one repeated picture
+
+
+def _g(source, tags):
+    d = {"title": "t", "summary": "", "source": source}
+    if tags is not None:
+        d["tags"] = tags
+    return d
+
+
+@pytest.mark.parametrize("item,kept", [
+    (_g("\U0001F1FA\U0001F1F8 Polygon", ["Gaming", "xbox"]), True),
+    (_g("\U0001F1FA\U0001F1F8 Polygon", ["Movies", "Obsession"]), False),
+    (_g("\U0001F1FA\U0001F1F8 Polygon", ["TV", "Yellowjackets"]), False),
+    (_g("\U0001F1FA\U0001F1F8 Polygon", ["FYI", "Magic: The Gathering"]), False),
+    (_g("\U0001F1F5\U0001F1F1 GRY-Online", ["gry", "Rockstar Games"]), True),
+    (_g("\U0001F1F5\U0001F1F1 GRY-Online", ["Filmy i seriale", "Netflix"]), False),   # case-insensitive
+    (_g("\U0001F1FA\U0001F1F8 GameRant", []), True),                                # tagged but empty: keep
+    (_g("\U0001F1FA\U0001F1F8 GameRant", None), False),                              # legacy item from a mixed feed
+    (_g("\U0001F1FA\U0001F1F8 Rock Paper Shotgun", None), True),                     # legacy item from a games-only feed
+], ids=["polygon-game", "polygon-movie", "polygon-tv", "polygon-fyi", "gry-game", "gry-film-case",
+        "empty-tags", "legacy-mixed", "legacy-gamesonly"])
+def test_games_tab_filter(item, kept):
+    from ui.filters import filter_for_games_tab
+    assert bool(filter_for_games_tab([item])) is kept

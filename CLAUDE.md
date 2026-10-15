@@ -16,6 +16,7 @@ ai_news_app/
   config.py       # Shared constants (feeds, intervals, per-page counts, file paths)
   ui/             # style.css, fonts.css, styles.py (JS), cards/games/anime/ticker/helpers/filters
   static/fonts/   # Self-hosted woff2 (Geist, Geist Mono, Playfair Display), served via Streamlit static serving
+  static/img/     # Runtime image cache (gitignored; Docker volume news_images)
   tests/          # pytest: feed parsing, merge/dedup, failure handling, text cleaning, filters
   data/           # Runtime JSON cache (gitignored, persisted via Docker volume)
 ```
@@ -58,7 +59,7 @@ docker compose up --build
 | `VIBE_FEEDS` | 6 RSS URLs | Simon Willison (vibe-coding tag), Addy Osmani, Latent Space*, DEV #vibecoding, r/vibecoding, ITwiz* (PL) — *broad, filtered by `filter_for_vibe_tab` |
 | `DESIGN_FEEDS` | 7 RSS URLs | Smashing, UX Collective, NN/g, Abduzeedo, Muzli, Dezeen, Design Alley (PL) |
 | `TAB_BACKGROUNDS` | 6 entries | Per-tab background photo + tint, in tab order (alternates listed in config.py comments) |
-| `GAMES_FEEDS` | 5 RSS URLs | RPS, Polygon, GameRant, 2× Polish |
+| `GAMES_FEEDS` | 6 RSS URLs | RPS, Polygon*, GameRant (/feed/gaming/), GRY-Online*, Eurogamer PL, CD-Action — *mixed-culture, filtered by tag (`filter_for_games_tab`) |
 
 ## Key constants (dashboard.py)
 | Symbol | Value | Purpose |
@@ -80,6 +81,13 @@ docker compose up --build
 
 ## Sections
 Tabs: **AI & Tech · Gaming · Anime · Vibe Code · Design · Saved**. Feeds were chosen by probing candidates live (HTTP 200, recent, parseable, images); dropped as dead/stale/blocked: Cursor blog, Codrops, It's Nice That, Core77, Designer News, Dribbble, CSS-Tricks, A List Apart, Awwwards. Vibe Code cards use a mono summary and a `>_` eyebrow (`.bg-code`); Design cards are image-first 16:9 (`.bg-visual`). Image-less vibe/design cards pick from a fixed pool by title hash. Per-source cap (`_MAX_PER_SOURCE`) keeps slow feeds (Smashing, NN/g) from being crowded out. Image URLs are upgraded to https; Medium images load with `crossorigin="anonymous"` to avoid third-party cookies.
+
+## Gaming feed hygiene
+Mixed-culture feeds (Polygon, GRY-Online) also publish film/TV/comics. `parse_entries` stores each entry's feed category `tags`; `filter_for_games_tab` drops entries tagged Movies/TV/Filmy/Seriale/Komiksy/Netflix... (items stored before tags existed, from mixed sources, are hidden until refetched). The ticker applies the same per-tab filters. GameRant uses its games-only feed; IGN Polska was replaced by Eurogamer PL + CD-Action (it mixed in films, series, comics and anime).
+
+## Image pipeline
+`main.localize_image` downloads each article image once at fetch time, shrinks it (720px wide, max 540 tall, WebP q74, ~25 KB avg vs 0.5-5 MB originals) into `static/img/` and stores `/app/static/img/<hash>.webp` in the item (`""` when unavailable, so the card uses a stock fallback). Server-side download only reaches public IPs (SSRF guard, redirects re-validated, size/type/pixel limits), sends a browser UA + the article as Referer, and never advertises AVIF (Pillow cannot decode it). `prune_images` deletes files no stored item references. Docker: `news_images` volume at `/app/static/img`.
+Front end: Streamlit strips inline `onerror`/`onload`, so `_JS_IMAGES` (capture-phase listeners) fades photos in (`.is-loaded`), swaps to `data-fb` when an image errors or takes >7 s, and a CSS keyframe reveals them after 5 s if the script never runs. Placeholder shimmer on `.nc-img`; the next/previous page's images are pre-loaded in a hidden `.nc-prefetch` block.
 
 ## Features added in the UX pass
 - **Search + source chips** above every news grid (`ui/cards.py: _filter_bar`); picking sources is also how you hide the others. Changing a filter resets to page 1.

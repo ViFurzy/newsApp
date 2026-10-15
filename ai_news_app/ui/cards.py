@@ -165,6 +165,14 @@ def _filter_bar(items: list[dict], page_key: str) -> list[dict]:
 
 # ── News card grid ─────────────────────────────────────────────────────────────
 
+def _prefetch_img(url: str) -> str:
+    """Hidden <img> that warms the browser cache; same CORS mode as the card so the cache entry is reused."""
+    if not url:
+        return ""
+    cors = ' crossorigin="anonymous"' if needs_anonymous_cors(url) else ""
+    return f'<img src="{_html.escape(url, quote=True)}" alt="" decoding="async" referrerpolicy="no-referrer"{cors}>'
+
+
 def render_news_cards(
     json_file_path,
     num_cols: int = 3,
@@ -194,11 +202,14 @@ def render_news_cards(
         )
         return
 
+    upcoming = []
     if per_page and page_key:
         total_pages = max(1, (len(items) + per_page - 1) // per_page)
         if st.session_state[page_key] >= total_pages:
             st.session_state[page_key] = total_pages - 1
         start = st.session_state[page_key] * per_page
+        # neighbouring pages: their images are warmed in the browser cache so paging feels instant
+        upcoming = items[start + per_page : start + 2 * per_page] + items[max(0, start - per_page) : start]
         items = items[start : start + per_page]
     else:
         total_pages = 1
@@ -230,7 +241,7 @@ def render_news_cards(
         cards_html += f"""<div class="nc">
 <a href="{_link}" target="_blank" class="nc-link" aria-label="{_title}"></a>
 <button type="button" class="nc-save" data-link="{_link}" aria-pressed="false" aria-label="Save for later">&#9734;</button>
-<div class="nc-img"><img class="nc-photo" src="{_img}" loading="lazy" decoding="async" alt="" referrerpolicy="no-referrer"{_cors} onerror="this.onerror=null;this.src='{_fb}'">{render_flag(flag)}</div>
+<div class="nc-img"><img class="nc-photo" src="{_img}" decoding="async" alt="" referrerpolicy="no-referrer"{_cors} data-fb="{_fb}">{render_flag(flag)}</div>
 <div class="nc-body">
 <div class="nc-meta">{badges}<span class="nc-time">{rel_t}</span></div>
 <div class="nc-title">{_title}</div>
@@ -241,8 +252,10 @@ def render_news_cards(
 </div>
 </div></div>"""
 
+    prefetch = "".join(_prefetch_img(https_url(it.get("image", ""))) for it in upcoming)
     placeholder.markdown(
-        f'<div class="bento-grid {grid_cls}">{cards_html}</div>',
+        f'<div class="bento-grid {grid_cls}">{cards_html}</div>'
+        f'<div class="nc-prefetch" aria-hidden="true">{prefetch}</div>',
         unsafe_allow_html=True,
     )
 

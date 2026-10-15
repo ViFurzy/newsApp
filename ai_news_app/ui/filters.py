@@ -66,3 +66,23 @@ def filter_for_vibe_tab(items: list[dict]) -> list[dict]:
             return True
         return any(term in _item_text(it) for term in _VIBE_TERMS)
     return [it for it in items if keep(it)]
+
+
+# ── Gaming tab: mixed-culture feeds also publish film/TV/comics ───────────────
+# Feeds tag every entry (Polygon "Movies", GRY "filmy i seriale", IGN PL "Filmy"...), so drop by tag.
+# Items stored before tags were collected (no "tags" key) from mixed sources are hidden until refetched.
+_NON_GAME_TAGS = frozenset([
+    "movies", "movies & tv", "tv", "film", "films", "entertainment", "fyi",
+    "filmy", "filmy i seriale", "seriale", "serial", "komiksy", "comics",
+    "netflix", "disney+ / disney plus", "hbo max", "prime video",
+])
+_GAMES_MIXED_SOURCES = ("GameRant", "Polygon", "GRY-Online")
+
+
+def filter_for_games_tab(items: list[dict]) -> list[dict]:
+    def keep(it: dict) -> bool:
+        tags = it.get("tags")
+        if tags is None:
+            return not any(s in it.get("source", "") for s in _GAMES_MIXED_SOURCES)
+        return not any(t.strip().lower() in _NON_GAME_TAGS for t in tags)
+    return [it for it in items if keep(it)]

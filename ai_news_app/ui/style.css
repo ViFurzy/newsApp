@@ -505,10 +505,18 @@ div[data-testid="stAppViewContainer"]::before {
     overflow: hidden;
     background: var(--surface-2);
 }
+.nc-img { background: linear-gradient(110deg, var(--surface-2) 30%, var(--surface-hover) 50%, var(--surface-2) 70%) 0 0 / 200% 100%;
+          animation: shimmer 1.6s ease-in-out infinite; }
+.nc-img:has(.nc-photo.is-loaded) { animation: none; }   /* stop the placeholder shimmer once loaded */
+/* fade the photo in once it has really loaded; the 5 s keyframe is a safety net if the script never runs */
+.nc-img .nc-photo { opacity: 0; animation: nc-photo-safety .01s 5s forwards; }
+.nc-img .nc-photo.is-loaded { opacity: 1; animation: none; }
+@keyframes nc-photo-safety { to { opacity: 1; } }
+.nc-prefetch { position: absolute; width: 0; height: 0; overflow: hidden; opacity: 0; pointer-events: none; }
 .nc-img .nc-photo {
     width: 100%; height: 100%; display: block;
     object-fit: cover; object-position: center;
-    transition: transform .38s var(--ease-expo);
+    transition: transform .38s var(--ease-expo), opacity .45s ease;
 }
 .nc:hover .nc-photo { transform: scale(1.04); }
 .nc-img::after {

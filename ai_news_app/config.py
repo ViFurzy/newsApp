@@ -16,6 +16,9 @@ AI_NEWS_FILE    = DATA_DIR / "news.json"
 GAMES_NEWS_FILE = DATA_DIR / "games_news.json"
 FREE_GAMES_FILE = DATA_DIR / "free_games.json"
 ANIME_NEWS_FILE = DATA_DIR / "anime_news.json"
+# Article images are downloaded once at fetch time, shrunk, and served by Streamlit static serving.
+IMG_DIR         = _HERE / "static" / "img"
+IMG_URL_PREFIX  = "/app/static/img"
 CALENDAR_FILE   = DATA_DIR / "anime_calendar.json"
 VIBE_NEWS_FILE   = DATA_DIR / "vibe_news.json"
 DESIGN_NEWS_FILE = DATA_DIR / "design_news.json"
@@ -37,9 +40,10 @@ AI_FEEDS = {
 GAMES_FEEDS = {
     "🇺🇸 Rock Paper Shotgun": "https://www.rockpapershotgun.com/feed/news",
     "🇺🇸 Polygon":            "https://www.polygon.com/rss/index.xml",
-    "🇺🇸 GameRant":           "https://gamerant.com/feed/",
+    "🇺🇸 GameRant":           "https://gamerant.com/feed/gaming/",   # main feed mixes in anime/movies/TV
     "🇵🇱 GRY-Online":         "https://www.gry-online.pl/rss/news.xml",
-    "🇵🇱 IGN Polska":         "https://pl.ign.com/feed.xml",
+    "🇵🇱 Eurogamer PL":        "https://www.eurogamer.pl/feed",
+    "🇵🇱 CD-Action":           "https://cdaction.pl/rss",   # replaced IGN Polska (mixes in films/series/comics)
 }
 
 ANIME_FEEDS = {

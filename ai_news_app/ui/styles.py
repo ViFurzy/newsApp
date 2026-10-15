@@ -233,6 +233,45 @@ _JS_BACKGROUNDS = (
 )
 
 
+# ── JS: photo fade-in + broken/slow image fallback ────────────────────────────
+# Streamlit strips inline onerror/onload, so this uses capture-phase listeners (load/error do not bubble).
+_JS_IMAGES = """
+<script>
+(function(){
+    var p=window.parent.document, SLOW_MS=7000;
+    function shown(img){img.classList.add('is-loaded');}
+    function fallback(img){
+        var fb=img.getAttribute('data-fb');
+        if(img.getAttribute('data-fell')||!fb){img.style.visibility='hidden';shown(img);return;}   // fallback failed too
+        img.setAttribute('data-fell','1');
+        img.removeAttribute('crossorigin');
+        img.src=fb;
+    }
+    function check(img){
+        if(img.complete){ if(img.naturalWidth>0)shown(img); else fallback(img); }
+        else if(!img._daSlow){
+            img._daSlow=setTimeout(function(){ if(!img.classList.contains('is-loaded'))fallback(img); },SLOW_MS);
+        }
+    }
+    function sweep(){p.querySelectorAll('img.nc-photo:not(.is-loaded)').forEach(check);}
+    function onEvent(e){
+        var t=e.target;
+        if(!t||!t.classList||!t.classList.contains('nc-photo'))return;
+        if(e.type==='load')shown(t); else fallback(t);
+    }
+    ['load','error'].forEach(function(n){
+        var key='_daImg_'+n;
+        if(window.parent[key])p.removeEventListener(n,window.parent[key],true);   // replace, never stack
+        window.parent[key]=onEvent;p.addEventListener(n,onEvent,true);
+    });
+    if(window.parent._daImgObs)window.parent._daImgObs.disconnect();
+    window.parent._daImgObs=new MutationObserver(sweep);
+    window.parent._daImgObs.observe(p.body,{childList:true,subtree:true});
+    sweep();
+})();
+</script>
+"""
+
 # ── JS: read-later stars (kept in this browser's localStorage) + Saved tab ────
 _JS_SAVED = """
 <script>
@@ -303,4 +342,4 @@ def inject_styles() -> None:
     """Inject all CSS and JS into the Streamlit page. Call once after set_page_config."""
     st.markdown(_css(), unsafe_allow_html=True)
     # one iframe for all scripts (each is an independent IIFE)
-    components.html("".join((_JS_PRECONNECT, _JS_THEME, _JS_PAGINATION, _JS_TABS, _JS_BACKGROUNDS, _JS_SAVED)), height=0, width=0)
+    components.html("".join((_JS_PRECONNECT, _JS_THEME, _JS_PAGINATION, _JS_TABS, _JS_BACKGROUNDS, _JS_SAVED, _JS_IMAGES)), height=0, width=0)

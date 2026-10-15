@@ -10,6 +10,7 @@ import streamlit.components.v1 as components
 
 from config import FREE_GAMES_FILE, GAMES_NEWS_FILE, GAMES_PER_PAGE, GAMING_PER_PAGE
 from ui.cards import render_news_cards, section_header
+from ui.filters import filter_for_games_tab
 from ui.helpers import (
     CHECK_ICON,
     count_items,
@@ -164,6 +165,7 @@ def render_games_tab() -> None:
             num_cols=2,
             per_page=GAMING_PER_PAGE,
             page_key="games_news_page",
+            filter_fn=filter_for_games_tab,
             category="gaming",
         )
 

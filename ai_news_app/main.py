@@ -11,9 +11,13 @@ Improvements over v1:
   - Feeds fetched in parallel; conditional GET (ETag / Last-Modified) skips unchanged feeds
   - Runs every FETCH_INTERVAL_MIN minutes, around the clock; the dashboard only reads
 """
+import hashlib
+import io
+import ipaddress
 import json
 import os
 import re
+import socket
 import sys
 import tempfile
 import time
@@ -21,10 +25,12 @@ import traceback
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
+from urllib.parse import urljoin, urlparse
 
 import feedparser
 import requests
 import schedule
+from PIL import Image
 from requests.adapters import HTTPAdapter
 from ui.helpers import https_url, strip_html
 from urllib3.util.retry import Retry
@@ -41,6 +47,8 @@ from config import (
     GAMES_FEEDS,
     GAMES_NEWS_FILE,
     FETCH_INTERVAL_MIN,
+    IMG_DIR,
+    IMG_URL_PREFIX,
     MAX_ENTRIES_PER_FEED,
     STATUS_FILE,
     DESIGN_FEEDS,
@@ -122,6 +130,102 @@ def _extract_image(entry) -> str:
     return match.group(1) if match else ""
 
 
+# ── Image cache: download once, shrink, serve locally ──────────────────────────
+# Why: feed images were slow (Polygon originals ~5 MB), sometimes hotlink-blocked (KDnuggets 403)
+# and popped in late. Local ~720px WebP files are fast and cannot be blocked.
+
+_MAX_IMG_BYTES = 6_000_000
+_IMG_WIDTH, _IMG_MAX_HEIGHT = 720, 540
+_IMG_HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                              "(KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+                "Accept": "image/webp,image/jpeg,image/png,image/*;q=0.8"}   # no AVIF: Pillow cannot decode it
+Image.MAX_IMAGE_PIXELS = 40_000_000    # reject decompression bombs
+
+
+def _public_host(host: str) -> bool:
+    """Feed-supplied URLs must not reach private/loopback/link-local addresses (SSRF)."""
+    try:
+        return all(ipaddress.ip_address(ai[4][0]).is_global for ai in socket.getaddrinfo(host, None))
+    except Exception:
+        return False
+
+
+def _download_image(url: str, referer: str):
+    """GET an image following at most 3 redirects, re-validating every hop. Returns bytes or None."""
+    for _ in range(4):
+        parts = urlparse(url)
+        if parts.scheme not in ("http", "https") or not parts.hostname or not _public_host(parts.hostname):
+            return None
+        resp = _http.get(url, timeout=10, stream=True, allow_redirects=False,
+                         headers={**_IMG_HEADERS, "Referer": referer})
+        try:
+            if resp.is_redirect:
+                url = urljoin(url, resp.headers.get("Location", ""))
+                continue
+            if resp.status_code != 200 or not resp.headers.get("content-type", "").startswith("image/"):
+                return None
+            data = resp.raw.read(_MAX_IMG_BYTES + 1, decode_content=True)
+            return data if len(data) <= _MAX_IMG_BYTES else None
+        finally:
+            resp.close()
+    return None
+
+
+def _shrink(data: bytes) -> Image.Image:
+    im = Image.open(io.BytesIO(data))
+    im.load()
+    im = im.convert("RGB")
+    if im.width > _IMG_WIDTH:
+        im = im.resize((_IMG_WIDTH, max(1, round(im.height * _IMG_WIDTH / im.width))), Image.LANCZOS)
+    if im.height > _IMG_MAX_HEIGHT:                                   # very tall: keep the middle
+        top = (im.height - _IMG_MAX_HEIGHT) // 2
+        im = im.crop((0, top, im.width, top + _IMG_MAX_HEIGHT))
+    return im
+
+
+def localize_image(entry: dict) -> dict:
+    """Point entry['image'] at a local copy; '' when it cannot be fetched (card then uses a stock fallback)."""
+    url = entry.get("image", "")
+    if not url or url.startswith(IMG_URL_PREFIX):
+        return entry
+    name = hashlib.sha1(url.encode("utf-8")).hexdigest()[:16] + ".webp"
+    path = IMG_DIR / name
+    if not path.exists():
+        try:
+            data = _download_image(url, entry.get("link", ""))
+            if not data:
+                entry["image"] = ""
+                return entry
+            IMG_DIR.mkdir(parents=True, exist_ok=True)
+            tmp = path.with_suffix(".tmp")
+            _shrink(data).save(tmp, "WEBP", quality=74)
+            os.replace(tmp, path)
+        except Exception:
+            entry["image"] = ""
+            return entry
+    entry["image"] = f"{IMG_URL_PREFIX}/{name}"
+    return entry
+
+
+def prune_images(files: list) -> int:
+    """Delete cached images no stored article points at any more. Returns files removed."""
+    if not IMG_DIR.exists():
+        return 0
+    used = set()
+    for f in files:
+        try:
+            with open(f, encoding="utf-8") as fp:
+                used |= {Path(i.get("image", "")).name for i in json.load(fp) if i.get("image", "").startswith(IMG_URL_PREFIX)}
+        except Exception:
+            return 0           # unreadable data file: do not risk deleting images still in use
+    removed = 0
+    for p in IMG_DIR.iterdir():
+        if p.is_file() and p.name not in used:
+            p.unlink(missing_ok=True)
+            removed += 1
+    return removed
+
+
 # ── RSS fetcher ────────────────────────────────────────────────────────────────
 
 _HTTP_CACHE_FILE = DATA_DIR / "_http_cache.json"   # url -> {etag, modified}
@@ -177,6 +281,7 @@ def parse_entries(xml_text: str, source_name: str) -> list[dict]:
             "source":    source_name,
             "image":     extract_image(entry),
             "summary":   (summary_raw[:350].rstrip() + "…") if len(summary_raw) > 350 else summary_raw,
+            "tags":      [t.get("term", "").strip() for t in entry.get("tags", []) if t.get("term", "").strip()][:12],
         })
     return out
 
@@ -213,7 +318,11 @@ def fetch_rss_feeds(feeds_dict: dict, output_file: Path, http_cache: dict, faile
         if not ok:
             failed.append(name)
 
-    items = merge_items(_load_existing(output_file), new_entries)
+    existing = {link: it for link, it in _load_existing(output_file).items()
+                if it.get("source") in feeds_dict}          # drop items of sources removed from config
+    items = merge_items(existing, new_entries)
+    with ThreadPoolExecutor(max_workers=8) as pool:      # also upgrades older items still on remote URLs
+        items = list(pool.map(localize_image, items))
     _safe_write_json(output_file, items)
     return len(items)
 
@@ -270,6 +379,7 @@ def fetch_all_data() -> None:
     fg_count    = fetch_free_games()
     _safe_write_json(_HTTP_CACHE_FILE, http_cache)
     _safe_write_json(STATUS_FILE, {"failed": failed})
+    prune_images([AI_NEWS_FILE, GAMES_NEWS_FILE, ANIME_NEWS_FILE, VIBE_NEWS_FILE, DESIGN_NEWS_FILE])
 
     print(
         f"[{datetime.now()}] Done. "

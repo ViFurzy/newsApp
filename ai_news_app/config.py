@@ -26,6 +26,7 @@ STATUS_FILE     = DATA_DIR / "_status.json"      # sources that failed in the la
 
 # ── Aggregator schedule ────────────────────────────────────────────────────────
 FETCH_INTERVAL_MIN   = 30   # daemon fetches every N minutes, around the clock
+STALE_AFTER_SEC      = 3600 # dashboard triggers its own fetch on page load when data is older than this
 MAX_ENTRIES_PER_FEED = 10   # newest entries taken from each feed per fetch
 
 # ── RSS feeds ──────────────────────────────────────────────────────────────────

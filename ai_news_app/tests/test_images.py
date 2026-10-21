@@ -29,6 +29,10 @@ class _Resp:
         self.headers = {"content-type": ctype, **({"Location": location} if location else {})}
         self.is_redirect = location is not None
         self.raw = _Raw(data)
+        self._data = data
+
+    def iter_content(self, n):
+        yield self._data
 
     def close(self):
         pass

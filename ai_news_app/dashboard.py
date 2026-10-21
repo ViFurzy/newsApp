@@ -11,6 +11,9 @@ All rendering logic lives in ui/ sub-modules:
   ui/games.py    — Gaming tab (news + free games + countdown)
 """
 import os
+import threading
+import time
+import traceback
 import base64 as _base64
 from PIL import Image
 
@@ -24,6 +27,7 @@ from config import (
     DESIGN_PER_PAGE,
     FREE_GAMES_FILE,
     GAMES_NEWS_FILE,
+    STALE_AFTER_SEC,
     STATUS_FILE,
     VIBE_NEWS_FILE,
     VIBE_PER_PAGE,
@@ -64,6 +68,31 @@ def _data_stamp() -> float:
 
 
 _stamp = _data_stamp()
+
+
+@st.cache_resource
+def _fetch_lock():
+    return threading.Lock()
+
+
+def _refresh_if_stale() -> None:
+    """Safety net: if the daemon died or hung, a page load past STALE_AFTER_SEC fetches in the background."""
+    if time.time() - _stamp < STALE_AFTER_SEC or not _fetch_lock().acquire(blocking=False):
+        return
+
+    def _run():
+        try:
+            import main
+            main.fetch_all_data()
+        except Exception:
+            traceback.print_exc()
+        finally:
+            _fetch_lock().release()
+
+    threading.Thread(target=_run, daemon=True).start()
+
+
+_refresh_if_stale()   # the fragment below picks up the new files and reruns
 
 
 @st.fragment(run_every=WATCH_INTERVAL_SEC)

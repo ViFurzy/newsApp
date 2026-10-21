@@ -394,7 +394,13 @@ def fetch_all_data() -> None:
 if __name__ == "__main__":
     schedule.every(FETCH_INTERVAL_MIN).minutes.do(fetch_all_data)
     print(f"[{datetime.now()}] Aggregator started. Every {FETCH_INTERVAL_MIN} min.")
-    fetch_all_data()
+    try:
+        fetch_all_data()
+    except Exception:
+        traceback.print_exc()
     while True:
-        schedule.run_pending()
+        try:
+            schedule.run_pending()
+        except Exception:   # one bad fetch must not kill the daemon
+            traceback.print_exc()
         time.sleep(30)

@@ -93,6 +93,7 @@ Front end: Streamlit strips inline `onerror`/`onload`, so `_JS_IMAGES` (capture-
 - **Search + source chips** above every news grid (`ui/cards.py: _filter_bar`); picking sources is also how you hide the others. Changing a filter resets to page 1.
 - **Read later**: star button on each card; saved cards (full card HTML) live in the browser's `localStorage` key `_da_saved` and render in the **Saved** tab (`_JS_SAVED` in `ui/styles.py`). Per browser, not synced.
 - **Failed-source notice**: `main.py` writes `data/_status.json` (`{"failed": [...]}`); the masthead shows it.
+- **Brand cards** (AI tab): image-less articles naming a known company (`ui/brands.py`) get an SVG logo card in `static/img/brand-*.svg`, built in `main.brand_image`.
 - **Ticker**: keyboard-skipped, loop copy is `aria-hidden`, has a pause button (CSS-only checkbox).
 - Streamlit theme is pinned `base = "dark"` with amber `primaryColor` in `.streamlit/config.toml`; search/chips are restyled from the app's own CSS tokens so they follow the light toggle.
 - Fallback card images use whole-word keyword rules, then a per-tab default; `<img>` has `onerror` fallback + `referrerpolicy="no-referrer"`.

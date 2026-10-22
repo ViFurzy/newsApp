@@ -32,6 +32,7 @@ import requests
 import schedule
 from PIL import Image
 from requests.adapters import HTTPAdapter
+from ui.brands import brand_filename, card_svg, find_brand, logo_paths
 from ui.helpers import https_url, strip_html
 from urllib3.util.retry import Retry
 
@@ -207,6 +208,34 @@ def localize_image(entry: dict) -> dict:
     return entry
 
 
+def brand_image(entry: dict) -> dict:
+    """Image-less article naming a known company: point it at that brand's logo card (cached per brand)."""
+    if entry.get("image"):
+        return entry
+    brand = find_brand(entry.get("title", ""))
+    if not brand:
+        return entry
+    label, slug = brand
+    name = brand_filename(label)
+    path = IMG_DIR / name
+    if not path.exists():
+        paths = []
+        try:
+            if slug:
+                resp = _http.get(f"https://cdn.simpleicons.org/{slug}/ffffff", timeout=10)
+                if resp.status_code != 404:       # 404 = no logo, a wordmark card is final; anything else retries next fetch
+                    resp.raise_for_status()
+                    paths = logo_paths(resp.text)
+            IMG_DIR.mkdir(parents=True, exist_ok=True)
+            tmp = path.with_suffix(".tmp")
+            tmp.write_text(card_svg(label, paths), encoding="utf-8")
+            os.replace(tmp, path)
+        except Exception:
+            return entry
+    entry["image"] = f"{IMG_URL_PREFIX}/{name}"
+    return entry
+
+
 def prune_images(files: list) -> int:
     """Delete cached images no stored article points at any more. Returns files removed."""
     if not IMG_DIR.exists():
@@ -302,7 +331,8 @@ def merge_items(existing: dict, new_entries: list[dict]) -> list[dict]:
     return kept
 
 
-def fetch_rss_feeds(feeds_dict: dict, output_file: Path, http_cache: dict, failed: list) -> int:
+def fetch_rss_feeds(feeds_dict: dict, output_file: Path, http_cache: dict, failed: list,
+                    brand_cards: bool = False) -> int:
     """Fetch all feeds in parallel, upsert into existing JSON, write atomically."""
     use_cache = output_file.exists()   # no data file -> must not get 304s
     with ThreadPoolExecutor(max_workers=len(feeds_dict)) as pool:
@@ -323,6 +353,8 @@ def fetch_rss_feeds(feeds_dict: dict, output_file: Path, http_cache: dict, faile
     items = merge_items(existing, new_entries)
     with ThreadPoolExecutor(max_workers=8) as pool:      # also upgrades older items still on remote URLs
         items = list(pool.map(localize_image, items))
+        if brand_cards:
+            items = [brand_image(i) for i in items]    # sequential: one logo fetch per brand, then cached
     _safe_write_json(output_file, items)
     return len(items)
 
@@ -371,7 +403,7 @@ def fetch_all_data() -> None:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
 
     http_cache, failed = _load_http_cache(), []
-    ai_count    = fetch_rss_feeds(AI_FEEDS,    AI_NEWS_FILE,    http_cache, failed)
+    ai_count    = fetch_rss_feeds(AI_FEEDS,    AI_NEWS_FILE,    http_cache, failed, brand_cards=True)
     games_count = fetch_rss_feeds(GAMES_FEEDS, GAMES_NEWS_FILE, http_cache, failed)
     anime_count = fetch_rss_feeds(ANIME_FEEDS, ANIME_NEWS_FILE, http_cache, failed)
     vibe_count   = fetch_rss_feeds(VIBE_FEEDS,   VIBE_NEWS_FILE,   http_cache, failed)

@@ -59,7 +59,14 @@ function entryImage(e, html) {
     const url = enc["@_url"] ?? "";
     if ((enc["@_type"] ?? "").startsWith("image/") || /\.(jpe?g|png|webp)(\?|$)/i.test(url)) return url;
   }
-  return e["media:thumbnail"]?.[0]?.["@_url"] ?? /<img[^>]+src=["']([^"']+)["']/i.exec(html)?.[1] ?? "";
+  const thumb = e["media:thumbnail"]?.[0]; // attribute form, or bare text (MyAnimeList)
+  return (typeof thumb === "string" ? thumb.trim() : thumb?.["@_url"]) ?? /<img[^>]+src=["']([^"']+)["']/i.exec(html)?.[1] ?? "";
+}
+
+/** Article page HTML -> its og:image URL (either attribute order), or "". */
+export function ogImage(html) {
+  const tag = /<meta\b[^>]*\bproperty=["']og:image["'][^>]*>/i.exec(html)?.[0] ?? "";
+  return safeUrl(httpsUrl(/\bcontent=["']([^"']+)["']/i.exec(tag)?.[1] ?? ""));
 }
 
 /** Raw feed XML -> article objects (no network). `now` stands in for entries with no usable date. */
@@ -92,7 +99,10 @@ export function parseFeed(xml, source, now = Date.now(), max = MAX_ENTRIES_PER_F
 /** Upsert by link, newest first, at most MAX_PER_SOURCE per source (so slow feeds are not crowded out), MAX_ITEMS_KEPT total. */
 export function mergeItems(existing, fresh) {
   const byLink = new Map(existing.map((i) => [i.link, i]));
-  for (const i of fresh) byLink.set(i.link, i);
+  for (const i of fresh) {
+    const old = byLink.get(i.link); // keep what the cron added later (og:image, brand card, ogTried)
+    byLink.set(i.link, old ? { ...old, ...i, image: i.image || old.image } : i);
+  }
   const perSource = {};
   const kept = [];
   for (const it of [...byLink.values()].sort((a, b) => b.ts - a.ts)) {
@@ -102,6 +112,23 @@ export function mergeItems(existing, fresh) {
     if (kept.length >= MAX_ITEMS_KEPT) break;
   }
   return kept;
+}
+
+// ── Anime banners: image-less news that names a known show gets that show's AniList banner ──
+
+const norm = (s) => ` ${s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim()} `;
+const baseTitle = (s) => norm(s.replace(/\b(?:season \d+|\d+(?:st|nd|rd|th) season|part \d+|cour \d+)\b.*$/i, ""));
+
+/** Banner of the longest show title (season suffix dropped, whole words, 6+ chars) found in `title`, or "". */
+export function matchBanner(title, shows) {
+  const t = norm(title);
+  let best = { len: 0, url: "" };
+  for (const s of shows)
+    for (const name of [s.title.english, s.title.romaji]) {
+      const b = name ? baseTitle(name) : "";
+      if (b.length >= 8 && b.length > best.len && t.includes(b)) best = { len: b.length, url: s.bannerImage };
+    }
+  return safeUrl(best.url);
 }
 
 // ── Per-tab filters ────────────────────────────────────────────────────────────

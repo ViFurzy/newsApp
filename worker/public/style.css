@@ -831,7 +831,18 @@ button { font: inherit; color: inherit; }
 .pager span { font-family: var(--font-mono); font-size: .69rem; letter-spacing: .08em; color: var(--text-2); }
 
 .list { display: flex; flex-direction: column; gap: 7px; }
-.genre-bar { display: grid; grid-template-columns: 3fr 1fr; gap: 8px; margin-bottom: 14px; }
+.genre-bar { margin-bottom: 14px; }
+
+/* Anime guide: stays in view beside the news grid; only the list scrolls */
+.side-sticky { position: sticky; top: 12px; }
+.split > div:has(> .side-sticky) { align-self: stretch; }
+.side-chips { margin-bottom: 10px; }
+.side-out { max-height: calc(100vh - 330px); min-height: 360px; overflow-y: auto; padding-right: 4px; }
+.side-out .gr-title { font-size: .94rem; }
+.side-out .gr-meta { font-size: .68rem; }
+.gr-sub { margin-top: 5px; }
+.ep-eta { margin-left: auto; color: var(--accent); font-weight: 600; white-space: nowrap; }
+@media (max-width: 1100px) { .side-sticky { position: static; } .side-out { max-height: 70vh; } }
 .nc-img .nc-photo[src$=".svg"] { object-fit: cover; }
 
 #theme { position: fixed; bottom: 24px; right: 24px; z-index: 50; width: 40px; height: 40px; border-radius: 8px; cursor: pointer;

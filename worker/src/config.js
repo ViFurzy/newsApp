@@ -22,6 +22,7 @@ export const FEEDS = {
     "🇬🇧 Anime UK News": "https://animeuknews.net/feed/",
     "🌍 Otaku USA": "https://otakuusamagazine.com/feed/",
     "🌍 ComicBook Anime": "https://comicbook.com/anime/rss/",
+    "🌍 MyAnimeList": "https://myanimelist.net/rss/news.xml", // ships a thumbnail for every item
   },
   vibe: {
     "🇺🇸 Simon Willison": "https://simonwillison.net/tags/vibe-coding.atom",
@@ -52,6 +53,10 @@ export const CRONS = {
   "15,45 * * * *": "vibe",
   "20,50 * * * *": "design",
 };
+
+// Sections whose feeds ship no images: read og:image from the article page, at most OG_PER_RUN pages per cron run.
+export const OG_IMAGE_CATS = ["anime"];
+export const OG_PER_RUN = 12;
 
 export const MAX_ENTRIES_PER_FEED = 10;
 export const MAX_ITEMS_KEPT = 90;

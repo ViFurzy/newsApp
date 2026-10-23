@@ -3,8 +3,8 @@
 //
 // KV keys: cat:<ai|games|anime|vibe|design> -> [item]   free -> [giveaway]
 //          meta -> {updated:{cat:ms}, failed:{cat:[source]}, kicked:ms}   brand:<key> -> svg
-import { CRONS, FEEDS, GAMERPOWER_URL, STALE_AFTER_MS } from "./config.js";
-import { BRANDS, FILTERS, cardSvg, findBrand, logoPaths, mergeItems, parseFeed, safeUrl } from "./core.js";
+import { CRONS, FEEDS, GAMERPOWER_URL, OG_IMAGE_CATS, OG_PER_RUN, STALE_AFTER_MS } from "./config.js";
+import { BRANDS, FILTERS, cardSvg, findBrand, logoPaths, matchBanner, mergeItems, ogImage, parseFeed, safeUrl } from "./core.js";
 
 const UA = "DailyAgg/3.0 (+https://github.com/ViFurzy/newsApp)";
 const json = (body, init = {}) =>
@@ -43,6 +43,41 @@ async function refreshFree(env) {
   await env.NEWS.put("free", JSON.stringify(games));
 }
 
+/** Image-less items get the article page's og:image (newest first, OG_PER_RUN per run; ogTried stops endless retries). */
+async function addOgImages(items) {
+  const todo = items.filter((i) => !i.image && !i.ogTried).slice(0, OG_PER_RUN);
+  await Promise.all(todo.map(async (i) => {
+    i.ogTried = true;
+    try {
+      const res = await fetch(i.link, { headers: { "user-agent": UA }, signal: AbortSignal.timeout(8000) });
+      if (res.ok) i.image = ogImage((await res.text()).slice(0, 80000));
+    } catch (err) {
+      console.log(`og:image failed: ${i.link}: ${err.message}`);
+    }
+  }));
+  return items;
+}
+
+/** Still image-less anime news: banner of the show the headline names (one AniList request per run). */
+async function addBanners(items) {
+  const todo = items.filter((i) => !i.image);
+  if (!todo.length) return items;
+  const page = (alias, args) => `${alias}:Page(perPage:50){media(type:ANIME,isAdult:false,${args}){title{romaji english} bannerImage}}`;
+  try {
+    const res = await fetch("https://graphql.anilist.co", {
+      method: "POST", headers: { "content-type": "application/json", "user-agent": UA }, signal: AbortSignal.timeout(10000),
+      body: JSON.stringify({ query: `{${page("a", "status:RELEASING,sort:POPULARITY_DESC")} ${page("b", "sort:TRENDING_DESC")} ${page("c", "status:NOT_YET_RELEASED,sort:POPULARITY_DESC")}}` }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const { data } = await res.json();
+    const shows = [data.a, data.b, data.c].flatMap((p) => p.media).filter((s) => s.bannerImage);
+    for (const i of todo) i.image = matchBanner(i.title, shows);
+  } catch (err) {
+    console.log(`anime banners failed: ${err.message}`);
+  }
+  return items;
+}
+
 async function refresh(env, cat) {
   const results = await Promise.all(Object.entries(FEEDS[cat]).map(([name, url]) => fetchFeed(name, url)));
   const failed = results.filter((r) => !r.ok).map((r) => r.name);
@@ -58,6 +93,8 @@ async function refresh(env, cat) {
         return brand ? { ...i, image: `/brand/${brand.key}.svg` } : i;
       });
     }
+    if (OG_IMAGE_CATS.includes(cat)) items = await addOgImages(items);
+    if (cat === "anime") items = await addBanners(items);
     await env.NEWS.put(`cat:${cat}`, JSON.stringify(items));
     meta.updated[cat] = Date.now();
   }

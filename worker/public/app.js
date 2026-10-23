@@ -5,14 +5,13 @@ const store = {
   get: (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } },
   set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
 };
-const JIKAN = "https://api.jikan.moe/v4";
 const POLL_MS = 60_000, POLL_EMPTY_MS = 8_000;
 
 const unsplash = (id) => `https://images.unsplash.com/photo-${id}?w=1920&q=50`;
 const TABS = [
   { key: "ai", label: "AI & Tech", cat: "AI / TECH", title: "Artificial Intelligence & Technology", cols: 3, bg: "1677442136019-21780ecad995", tint: "rgba(91,156,246,0.040)" },
   { key: "games", label: "Gaming", cat: "GAMING", title: "Gaming News", cols: 2, side: "free", bg: "1542751371-adc38448a05e", tint: "rgba(34,197,94,0.032)", fb: "gaming" },
-  { key: "anime", label: "Anime", cat: "ANIME", title: "Anime News", cols: 2, side: "genre", bg: "1578632767115-351597cf2477", tint: "rgba(167,139,250,0.040)", fb: "anime" },
+  { key: "anime", label: "Anime", cat: "ANIME", title: "Anime News", cols: 2, side: "anime", bg: "1578632767115-351597cf2477", tint: "rgba(167,139,250,0.040)", fb: "anime" },
   { key: "vibe", label: "Vibe Code", cat: ">_ VIBE CODE", title: "Vibe Coding & AI Dev Tools", cols: 3, variant: "code", bg: "1605379399642-870262d3d051", tint: "rgba(34,211,238,0.040)" },
   { key: "design", label: "Design", cat: "DESIGN", title: "Design, UX & Visual Culture", cols: 3, variant: "visual", bg: "1541701494587-cb58502866ab", tint: "rgba(236,72,153,0.040)" },
   { key: "saved", label: "Saved", cat: "READ LATER", title: "Saved Stories", bg: "1481627834876-b7833e8f5570", tint: "rgba(200,112,56,0.045)" },
@@ -22,7 +21,7 @@ const TICKER_CATS = { ai: "AI", games: "GAMING", anime: "ANIME", vibe: "VIBE", d
 
 let data = { tabs: {}, free: [], updated: {}, failed: [], stamp: 0 };
 let tab = TABS.some((t) => t.key === store.get("_da_tab")) ? store.get("_da_tab") : "ai";
-const view = { page: {}, q: {}, picked: {}, genre: "", sort: "score" };
+const view = { page: {}, q: {}, picked: {}, genre: "", mode: "airing" };
 let saved = store.get("_da_saved_v2", {}); // link -> item (+ cat)
 
 // ── Formatting ─────────────────────────────────────────────────────────────────
@@ -53,7 +52,16 @@ const POOL = {
   design: ["1558655146-d09347e92766", "1626785774573-4b799315345d", "1586717791821-3f44a563fa4c", "1561070791-2526d30994b5", "1541701494587-cb58502866ab"].map(U),
 };
 const hash = (s) => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
+// Anime news about an unknown show: dark card tinted by a hash of the title (same family as the AI brand cards)
+const animeCard = (it) => {
+  const h = hash(it.title) % 360, src = parseSource(it.source)[1].toUpperCase();
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="720" height="405" viewBox="0 0 720 405"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="hsl(${h} 38% 13%)"/><stop offset="1" stop-color="hsl(${(h + 50) % 360} 42% 24%)"/></linearGradient></defs><rect width="720" height="405" fill="url(#g)"/>`
+    + `<text x="360" y="190" text-anchor="middle" font-family="Georgia,serif" font-weight="700" font-size="84" fill="#f0ece4" fill-opacity=".9">アニメ</text><rect x="320" y="212" width="80" height="3" fill="#c87038"/>`
+    + `<text x="360" y="252" text-anchor="middle" font-family="ui-monospace,Consolas,monospace" font-size="22" letter-spacing="6" fill="#e08a4c">${esc(src)}</text></svg>`;
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+};
 function fallbackImage(it, cat) {
+  if (cat === "anime") return animeCard(it);
   if (POOL[cat]) return POOL[cat][hash(it.title) % POOL[cat].length];
   const text = `${it.title} ${it.summary}`.toLowerCase();
   return RULES.find(([rx]) => rx.test(text))?.[1] ?? { games: IMG.game, anime: IMG.anime }[cat] ?? IMG.dflt;
@@ -103,38 +111,55 @@ function freeColumn() {
 }
 setInterval(() => document.querySelectorAll(".gr-countdown").forEach((el) => {
   const [label, cls] = countdown(+el.dataset.end);
-  el.textContent = label; el.className = `gr-countdown ${cls}`;
+  const pre = el.dataset.pre; // episode ETAs: accent colour, "aired" once the time has passed
+  el.textContent = pre ? pre + (label === "Expired" ? "aired" : label) : label;
+  el.className = pre ? "gr-countdown ep-eta" : `gr-countdown ${cls}`;
 }), 1000);
 
-// ── Anime genre browser (Jikan, called straight from the browser) ─────────────
-let genres;
-const jikan = async (path) => (await (await fetch(JIKAN + path)).json()).data ?? [];
-const animeRow = (a, i) => {
-  const meta = [a.score && `★ ${a.score}`, a.year, a.episodes && `${a.episodes} ep`, (a.status ?? "").replace("Finished Airing", "Finished").replace("Currently Airing", "Airing")].filter(Boolean).join(" · ");
-  return `<a href="${esc(a.url)}" target="_blank" rel="noopener" class="gr" style="animation-delay:${i * 40}ms"><div class="gr-thumb" style="width:54px;height:76px;background-image:url('${esc(a.images?.jpg?.image_url)}')"></div><div class="gr-body"><div class="gr-title">${esc(a.title)}</div><div class="gr-meta">${esc(meta)}</div></div></a>`;
-};
-function genreColumn() {
-  return header({ cat: "SEARCH", title: "Browse by Genre" }) +
-    `<div class="genre-bar"><select id="genre" aria-label="Genre"><option value="">Select a genre</option></select>
-<select id="sort" aria-label="Sort">${[["score", "Score"], ["popularity", "Popularity"], ["members", "Members"]].map(([v, l]) => `<option value="${v}"${view.sort === v ? " selected" : ""}>${l}</option>`).join("")}</select></div>
-<div id="genre-out" style="max-height:800px;overflow-y:auto;padding-right:4px"></div>`;
+// ── Anime guide: what to watch (AniList GraphQL, called straight from the browser) ──
+// ponytail: AniList replaced Jikan, which was unreachable (blank panel). Results cached 10 min in memory.
+const ANILIST = "https://graphql.anilist.co";
+const MODES = [["airing", "Airing now", "status: RELEASING, sort: POPULARITY_DESC"], ["trending", "Trending", "sort: TRENDING_DESC"],
+  ["upcoming", "Upcoming", "status: NOT_YET_RELEASED, sort: POPULARITY_DESC"], ["top", "Top rated", "sort: SCORE_DESC, popularity_greater: 30000"]];
+const GENRES = ["Action", "Adventure", "Comedy", "Drama", "Fantasy", "Horror", "Mahou Shoujo", "Mecha", "Music", "Mystery",
+  "Psychological", "Romance", "Sci-Fi", "Slice of Life", "Sports", "Supernatural", "Thriller"];
+const aniCache = new Map();
+let aniSeq = 0;
+async function anilist(mode, genre) {
+  const key = `${mode}|${genre}`, hit = aniCache.get(key);
+  if (hit && Date.now() - hit.at < 600_000) return hit.list;
+  const query = `query($g:String){Page(perPage:20){media(type:ANIME,isAdult:false,genre:$g,${MODES.find((m) => m[0] === mode)[2]}){
+siteUrl format episodes status averageScore genres title{romaji english} coverImage{large} studios(isMain:true){nodes{name}} startDate{year month day} nextAiringEpisode{episode airingAt}}}}`;
+  const res = await fetch(ANILIST, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ query, variables: { g: genre || null } }), signal: AbortSignal.timeout(10000) });
+  if (!res.ok) throw new Error(`AniList HTTP ${res.status}`);
+  const list = (await res.json()).data.Page.media;
+  aniCache.set(key, { at: Date.now(), list });
+  return list;
 }
-async function initGenre() {
-  const sel = $("#genre"), out = $("#genre-out");
-  if (!sel) return;
-  genres ??= await jikan("/genres/anime").then((g) => g.sort((a, b) => a.name.localeCompare(b.name))).catch(() => []);
-  if (!genres.length) genres = undefined; // failed: retry on the next visit
-  if (!$("#genre") || !genres) return; // tab changed while loading
-  sel.insertAdjacentHTML("beforeend", genres.map((g) => `<option value="${g.mal_id}"${String(g.mal_id) === view.genre ? " selected" : ""}>${esc(g.name)}</option>`).join(""));
-  const show = async () => {
-    view.genre = sel.value; view.sort = $("#sort").value;
-    if (!view.genre) return void (out.innerHTML = empty("Select a genre to browse anime"));
-    out.innerHTML = empty("Loading…");
-    const list = await jikan(`/anime?genres=${encodeURIComponent(view.genre)}&order_by=${view.sort}&sort=desc&limit=20&sfw=true`).catch(() => []);
-    if ($("#genre-out") === out) out.innerHTML = list.length ? `<div class="list">${list.map(animeRow).join("")}</div>` : empty("No results found for this genre");
-  };
-  sel.onchange = $("#sort").onchange = show;
-  show();
+const MONTH = (m) => new Date(2000, m - 1).toLocaleString("en-GB", { month: "short" });
+const animeRow = (a, i) => {
+  const nx = a.nextAiringEpisode, s = a.startDate;
+  const meta = [a.averageScore && `★ ${(a.averageScore / 10).toFixed(1)}`, a.format?.replace("_", " "), a.episodes && `${a.episodes} ep`, a.studios.nodes[0]?.name].filter(Boolean).join(" · ");
+  const eta = nx ? `<span class="gr-countdown ep-eta" data-end="${nx.airingAt * 1000}" data-pre="EP ${nx.episode} · ">EP ${nx.episode} · ${countdown(nx.airingAt * 1000)[0]}</span>`
+    : a.status === "NOT_YET_RELEASED" && s.year ? `<span class="ep-eta">Starts ${[s.day, s.month && MONTH(s.month), s.year].filter(Boolean).join(" ")}</span>` : "";
+  return `<a href="${esc(a.siteUrl)}" target="_blank" rel="noopener" class="gr" style="animation-delay:${i * 40}ms"><div class="gr-thumb" style="width:56px;height:80px;background-image:url('${esc(a.coverImage.large)}')"></div>
+<div class="gr-body"><div class="gr-title">${esc(a.title.english ?? a.title.romaji)}</div><div class="gr-meta">${esc(meta)}</div><div class="gr-meta gr-sub"><span>${esc(a.genres.slice(0, 3).join(" · "))}</span>${eta}</div></div></a>`;
+};
+function animeColumn() {
+  return `<div class="side-sticky">${header({ cat: "ANIME GUIDE", title: "What to Watch" })}
+<div class="chips side-chips" role="group" aria-label="List">${MODES.map(([k, l]) => `<button type="button" class="chip" data-mode="${k}" aria-pressed="${view.mode === k}">${l}</button>`).join("")}</div>
+<div class="genre-bar"><select id="genre" aria-label="Genre"><option value="">All genres</option>${GENRES.map((g) => `<option${view.genre === g ? " selected" : ""}>${g}</option>`).join("")}</select></div>
+<div id="genre-out" class="side-out"></div></div>`;
+}
+async function initAnime() {
+  const out = $("#genre-out"), seq = ++aniSeq;
+  if (!out) return;
+  out.innerHTML = empty("Loading…");
+  let list;
+  try { list = await anilist(view.mode, view.genre); } catch { list = null; }
+  if (seq !== aniSeq || $("#genre-out") !== out) return; // superseded or tab changed
+  out.innerHTML = list === null ? `<div class="empty-state">AniList is not responding.<br><button type="button" class="chip" data-retry>Retry</button></div>`
+    : list.length ? `<div class="list">${list.map(animeRow).join("")}</div>` : empty("Nothing matches this filter");
 }
 
 // ── News tabs: filter bar, grid, pager ─────────────────────────────────────────
@@ -171,10 +196,10 @@ function renderTab() {
     return sweepImages();
   }
   $("#panel").innerHTML = t.side
-    ? `<div class="split"><div>${newsColumn(t)}</div><div>${t.side === "free" ? freeColumn() : genreColumn()}</div></div>`
+    ? `<div class="split"><div>${newsColumn(t)}</div><div>${t.side === "free" ? freeColumn() : animeColumn()}</div></div>`
     : newsColumn(t);
   renderGrid();
-  if (t.side === "genre") initGenre();
+  if (t.side === "anime") initAnime();
   if (refocus) { const q = $("#q"); q.focus(); q.setSelectionRange(q.value.length, q.value.length); }
 }
 
@@ -216,7 +241,7 @@ for (const ev of ["load", "error"]) // load/error do not bubble: capture phase
 
 // ── Events ─────────────────────────────────────────────────────────────────────
 document.addEventListener("click", (e) => {
-  const star = e.target.closest(".nc-save"), chip = e.target.closest(".chip"), pg = e.target.closest("[data-page]"), tb = e.target.closest(".tab");
+  const star = e.target.closest(".nc-save"), chip = e.target.closest(".chip[data-src]"), mode = e.target.closest("[data-mode]"), retry = e.target.closest("[data-retry]"), pg = e.target.closest("[data-page]"), tb = e.target.closest(".tab");
   if (star) {
     const link = star.dataset.link, cat = star.dataset.cat;
     if (saved[link]) delete saved[link];
@@ -232,6 +257,12 @@ document.addEventListener("click", (e) => {
     set.has(chip.dataset.src) ? set.delete(chip.dataset.src) : set.add(chip.dataset.src);
     chip.setAttribute("aria-pressed", set.has(chip.dataset.src));
     view.page[tab] = 0; renderGrid();
+  } else if (mode) {
+    view.mode = mode.dataset.mode;
+    document.querySelectorAll("[data-mode]").forEach((b) => b.setAttribute("aria-pressed", b === mode));
+    initAnime();
+  } else if (retry) {
+    initAnime();
   } else if (pg) {
     view.page[tab] = +pg.dataset.page; renderGrid();
   } else if (tb) {
@@ -240,6 +271,9 @@ document.addEventListener("click", (e) => {
 });
 document.addEventListener("input", (e) => {
   if (e.target.id === "q") { view.q[tab] = e.target.value; view.page[tab] = 0; renderGrid(); }
+});
+document.addEventListener("change", (e) => {
+  if (e.target.id === "genre") { view.genre = e.target.value; initAnime(); }
 });
 
 // ── Theme + backgrounds ────────────────────────────────────────────────────────

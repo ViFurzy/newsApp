@@ -833,6 +833,18 @@ button { font: inherit; color: inherit; }
 .list { display: flex; flex-direction: column; gap: 7px; }
 .genre-bar { margin-bottom: 14px; }
 
+/* Uniform cards: fixed line counts (and invisible filler cards on short pages) so the pager never moves between pages */
+.nc-meta { flex-wrap: nowrap; min-height: 22px; }
+.src-badge { min-width: 0; overflow: hidden; white-space: nowrap; }
+.nc-title { -webkit-line-clamp: 2; min-height: 2.84em; }   /* 2 lines x line-height 1.42 */
+.nc-summary { min-height: 4.95em; }                        /* 3 lines x line-height 1.65 */
+.nc-ghost { visibility: hidden; }
+
+/* Native controls (select list, scrollbars) follow the page theme */
+:root { color-scheme: dark; }
+[data-theme="light"] { color-scheme: light; }
+select option { background: var(--bg-raised); color: var(--text-1); }
+
 /* Anime guide: stays in view beside the news grid; only the list scrolls */
 .side-sticky { position: sticky; top: 12px; }
 .split > div:has(> .side-sticky) { align-self: stretch; }

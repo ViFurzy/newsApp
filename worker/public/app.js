@@ -172,8 +172,11 @@ function renderGrid() {
   const t = current(), items = visibleItems(), pages = Math.max(1, Math.ceil(items.length / PER_PAGE));
   const page = (view.page[tab] = Math.min(view.page[tab] ?? 0, pages - 1));
   const searching = view.q[tab] || view.picked[tab]?.size;
+  const rows = items.slice(page * PER_PAGE, (page + 1) * PER_PAGE);
+  // invisible copies pad a short last page to PER_PAGE so the grid (and the pager below it) keeps its height
+  const ghosts = pages > 1 ? Array.from({ length: PER_PAGE - rows.length }, () => card(rows[0], t.fb ?? t.key).replace('class="nc"', 'class="nc nc-ghost" aria-hidden="true"')) : [];
   $("#grid").innerHTML = items.length
-    ? `<div class="bento-grid ${t.cols === 3 ? "bg-3" : "bg-2"}${t.variant ? ` bg-${t.variant}` : ""}">${items.slice(page * PER_PAGE, (page + 1) * PER_PAGE).map((i) => card(i, t.fb ?? t.key)).join("")}</div>`
+    ? `<div class="bento-grid ${t.cols === 3 ? "bg-3" : "bg-2"}${t.variant ? ` bg-${t.variant}` : ""}">${rows.map((i) => card(i, t.fb ?? t.key)).join("")}${ghosts.join("")}</div>`
     : empty(searching ? "No articles match your search" : data.stamp ? "No articles available yet" : "Waiting for the first fetch…");
   $("#pager").innerHTML = pages > 1
     ? `<div class="pager"><button data-page="${page - 1}" aria-label="Previous page"${page ? "" : " disabled"}>◀</button><span>${page + 1} / ${pages}</span><button data-page="${page + 1}" aria-label="Next page"${page < pages - 1 ? "" : " disabled"}>▶</button></div>` : "";

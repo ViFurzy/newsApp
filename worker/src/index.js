@@ -58,20 +58,20 @@ async function addOgImages(items) {
   return items;
 }
 
-/** Still image-less anime news: banner of the show the headline names (one AniList request per run). */
+/** Anime news that names a known show gets that show's banner instead of the page's header image (one AniList request per run). */
 async function addBanners(items) {
-  const todo = items.filter((i) => !i.image);
-  if (!todo.length) return items;
   const page = (alias, args) => `${alias}:Page(perPage:50){media(type:ANIME,isAdult:false,${args}){title{romaji english} bannerImage}}`;
+  const now = new Date(), q = Math.floor(now.getUTCMonth() / 3), SEASONS = ["WINTER", "SPRING", "SUMMER", "FALL"];
+  const season = (back) => `season:${SEASONS[(q - back + 4) % 4]},seasonYear:${now.getUTCFullYear() - (q - back < 0 ? 1 : 0)},sort:POPULARITY_DESC`;
   try {
     const res = await fetch("https://graphql.anilist.co", {
       method: "POST", headers: { "content-type": "application/json", "user-agent": UA }, signal: AbortSignal.timeout(10000),
-      body: JSON.stringify({ query: `{${page("a", "status:RELEASING,sort:POPULARITY_DESC")} ${page("b", "sort:TRENDING_DESC")} ${page("c", "status:NOT_YET_RELEASED,sort:POPULARITY_DESC")}}` }),
+      body: JSON.stringify({ query: `{${page("a", "status:RELEASING,sort:POPULARITY_DESC")} ${page("b", "sort:TRENDING_DESC")} ${page("c", "status:NOT_YET_RELEASED,sort:POPULARITY_DESC")} ${page("d", "sort:POPULARITY_DESC")} ${page("e", season(0))} ${page("f", season(1))}}` }),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const { data } = await res.json();
-    const shows = [data.a, data.b, data.c].flatMap((p) => p.media).filter((s) => s.bannerImage);
-    for (const i of todo) i.image = matchBanner(i.title, shows);
+    const shows = Object.values(data).flatMap((p) => p.media).filter((s) => s.bannerImage);
+    for (const i of items) i.image = matchBanner(i.title, shows) || i.image;
   } catch (err) {
     console.log(`anime banners failed: ${err.message}`);
   }
@@ -93,8 +93,8 @@ async function refresh(env, cat) {
         return brand ? { ...i, image: `/brand/${brand.key}.svg` } : i;
       });
     }
-    if (OG_IMAGE_CATS.includes(cat)) items = await addOgImages(items);
-    if (cat === "anime") items = await addBanners(items);
+    if (cat === "anime") items = await addBanners(items); // content first: the show the headline names
+    if (OG_IMAGE_CATS.includes(cat)) items = await addOgImages(items); // then the page's own header image
     await env.NEWS.put(`cat:${cat}`, JSON.stringify(items));
     meta.updated[cat] = Date.now();
   }

@@ -24,3 +24,6 @@ build/
 Thumbs.db
 desktop.ini
 ai_news_app/static/img/
+
+worker/node_modules/
+worker/.wrangler/

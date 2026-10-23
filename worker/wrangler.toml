@@ -1,0 +1,20 @@
+name = "dailyagg"
+main = "src/index.js"
+compatibility_date = "2025-09-01"
+
+# Custom domain (zone must be on this Cloudflare account); DNS record + certificate are created on deploy.
+routes = [{ pattern = "daily.vi-design.pro", custom_domain = true }]
+
+# Static dashboard (public/); only the API and brand cards run the Worker first.
+[assets]
+directory = "./public"
+run_worker_first = ["/api/*", "/brand/*"]
+
+# One cron per section keeps each run small (CPU time + subrequest limits). Keep in sync with CRONS in src/config.js.
+[triggers]
+crons = ["0,30 * * * *", "5,35 * * * *", "10,40 * * * *", "15,45 * * * *", "20,50 * * * *"]
+
+# Run once: npx wrangler kv namespace create NEWS   -> paste the returned id below
+[[kv_namespaces]]
+binding = "NEWS"
+id = "bc10af80a2ad42a39adbf10cb88b4bff"
